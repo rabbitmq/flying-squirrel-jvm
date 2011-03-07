@@ -1,11 +1,5 @@
 package com.rabbitmq.socks.api.impl;
 
-import java.io.Reader;
-
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
-
 import com.rabbitmq.socks.api.Connection;
 
 /**

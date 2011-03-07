@@ -50,8 +50,6 @@ public class EndpointImpl implements Endpoint
 		return name;
 	}
 	
-
-
 	public List<ChannelDefinition> getChannelDefinitions()
 	{
 		return Collections.unmodifiableList(channelDefs);
@@ -119,5 +117,4 @@ public class EndpointImpl implements Endpoint
 				resource.equals(cother.getResource()));
 		}
 	}
-
 }

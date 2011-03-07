@@ -9,17 +9,17 @@ import java.util.List;
  */
 public interface RabbitSocksAPI
 {
-	void createEndpoint(Endpoint endpoint) throws Exception;
+	void createEndpoint(Endpoint endpoint) throws RabbitSocksAPIException;
 	
-	void deleteEndpoint(String endpointName) throws Exception;
+	void deleteEndpoint(String endpointName) throws RabbitSocksAPIException;
 	
-	Endpoint getEndpoint(String endpointName) throws Exception;
+	Endpoint getEndpoint(String endpointName) throws RabbitSocksAPIException;
 	
 	List<Connection> listConnectionsForEndpoint(String endpointName)
-		throws Exception;
+		throws RabbitSocksAPIException;
 	
-	List<String> listEndpointNames() throws Exception;
+	List<String> listEndpointNames() throws RabbitSocksAPIException;
 	
 	String generateTicket(String endpointName, String identity,
-			              long timeout) throws Exception;
+			              long timeout) throws RabbitSocksAPIException;
 }

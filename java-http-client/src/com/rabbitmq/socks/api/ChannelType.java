@@ -1,5 +1,10 @@
 package com.rabbitmq.socks.api;
 
+/**
+ * 
+ * @author tfox
+ *
+ */
 public enum ChannelType
 {
 	PUB, SUB, PUSH, PULL, REQ, REP;
