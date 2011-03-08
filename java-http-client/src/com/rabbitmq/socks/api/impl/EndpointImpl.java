@@ -1,13 +1,11 @@
 package com.rabbitmq.socks.api.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.rabbitmq.socks.api.ChannelDefinition;
 import com.rabbitmq.socks.api.ChannelType;
 import com.rabbitmq.socks.api.Endpoint;
-import com.rabbitmq.socks.api.ProtocolURL;
 
 /**
  * 
@@ -20,10 +18,11 @@ public class EndpointImpl implements Endpoint
 	
 	private String key;
 	
-	private final List<ChannelDefinition> channelDefs =
-		new ArrayList<ChannelDefinition>();
+	private final Map<String, ChannelDefinition> channelDefs =
+		new LinkedHashMap<String, ChannelDefinition>();
 	
-	private final List<ProtocolURL> urls = new ArrayList<ProtocolURL>();
+	private final Map<String, String> urlMap =
+	    new LinkedHashMap<String, String>();
 	
 	public String getKey()
 	{
@@ -35,9 +34,9 @@ public class EndpointImpl implements Endpoint
 	    this.key = key;
 	}
 
-	public List<ProtocolURL> getProtocolURLs()
+	public Map<String, String> getProtocolURLMap()
 	{
-		return urls;
+		return urlMap;
 	}
 		
 	public EndpointImpl(final String name)
@@ -50,44 +49,38 @@ public class EndpointImpl implements Endpoint
 		return name;
 	}
 	
-	public List<ChannelDefinition> getChannelDefinitions()
+	public Map<String, ChannelDefinition> getChannelDefinitions()
 	{
-		return Collections.unmodifiableList(channelDefs);
+		return channelDefs;
 	}
 	
-	public Endpoint addChannelDefinition(final String channelName,
-				final ChannelType channelType, final String resource)
+	public Endpoint putChannelDefinition(final String channelName,
+	                                     final ChannelType channelType,
+	                                     final String resource)
 	{
-		channelDefs.add(new ChannelDefinitionImpl(channelName, channelType, resource));
+		channelDefs.put(channelName,
+		                new ChannelDefinitionImpl(channelType, resource));
 		
 		return this;
 	}
 	
-	public Endpoint addProtocolURL(final ProtocolURL url)
+	public Endpoint putProtocolURL(final String protocolName, final String url)
 	{
-	    urls.add(url);
+	    urlMap.put(protocolName, url);
 	    
 	    return this;
 	}
 	
 	private static class ChannelDefinitionImpl implements ChannelDefinition
 	{
-		String name;
 		ChannelType channelType;
 		String resource;
 		
-		public ChannelDefinitionImpl(final String name, final ChannelType channelType,
+		public ChannelDefinitionImpl(final ChannelType channelType,
 									 final String resource)
 		{			
-			this.name = name;
 			this.channelType = channelType;
 			this.resource = resource;
-		}
-
-		@Override
-		public String getName()
-		{
-			return name;
 		}
 
 		@Override
@@ -112,9 +105,8 @@ public class EndpointImpl implements Endpoint
 			
 			ChannelDefinition cother = (ChannelDefinition)other;
 			
-			return (name.equals(cother.getName()) &&
-				channelType.equals(cother.getType()) &&
-				resource.equals(cother.getResource()));
+			return (channelType.equals(cother.getType()) &&
+				    resource.equals(cother.getResource()));
 		}
 	}
 }

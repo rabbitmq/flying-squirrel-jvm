@@ -1,6 +1,6 @@
 package com.rabbitmq.socks.api;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -15,12 +15,13 @@ public interface Endpoint
 	
 	void setKey(String key);
 	
-	List<ProtocolURL> getProtocolURLs();
+	Map<String, String> getProtocolURLMap();
 	
-	List<ChannelDefinition> getChannelDefinitions();
+	Map<String, ChannelDefinition> getChannelDefinitions();
 	
-	Endpoint addChannelDefinition(String channelName,
-			                      ChannelType channelType, String resource);
+	Endpoint putChannelDefinition(String channelName,
+			                      ChannelType channelType,
+			                      String resource);
 	
-	Endpoint addProtocolURL(ProtocolURL url);
+	Endpoint putProtocolURL(String protocolName, String url);
 }

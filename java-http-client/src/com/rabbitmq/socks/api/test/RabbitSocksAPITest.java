@@ -1,18 +1,18 @@
 package com.rabbitmq.socks.api.test;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import junit.framework.TestCase;
 
 import com.rabbitmq.socks.api.ChannelDefinition;
 import com.rabbitmq.socks.api.ChannelType;
-import com.rabbitmq.socks.api.Connection;
 import com.rabbitmq.socks.api.Endpoint;
 import com.rabbitmq.socks.api.EndpointBuilder;
-import com.rabbitmq.socks.api.ProtocolURL;
 import com.rabbitmq.socks.api.RabbitSocksAPI;
 import com.rabbitmq.socks.api.RabbitSocksAPIException;
 import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
@@ -45,31 +45,32 @@ public class RabbitSocksAPITest extends TestCase
 	    int channelCount = 10;
 	    for (int i = 0; i < channelCount; i++)
 	    {
-	        endpoint = endpoint.addChannelDefinition("channel-" + i,
+	        endpoint = endpoint.putChannelDefinition("channel-" + i,
 	                                      getChannelType(i),
 	                                      "resource-" + i);
 	    }
 	    int urlCount = 10;
 	    for (int i = 0; i < urlCount; i++)
 	    {
-	        endpoint = endpoint.addProtocolURL(new ProtocolURL("protocol-" + i,
-	                                                "url-" + i));
+	        endpoint = endpoint.putProtocolURL("protocol-" + i, "url-" + i);
 	    }	    
 	    assertEquals(endpointName, endpoint.getName());
 	    assertEquals(channelCount, endpoint.getChannelDefinitions().size());
 	    int count = 0;
-	    for (ChannelDefinition def: endpoint.getChannelDefinitions())
+	    for (Map.Entry<String, ChannelDefinition> entry:
+	             endpoint.getChannelDefinitions().entrySet())
 	    {
-	        assertEquals("channel-" + count, def.getName());
-	        assertEquals(getChannelType(count), def.getType());
-	        assertEquals("resource-" + count, def.getResource());
+	        assertEquals("channel-" + count, entry.getKey());
+	        assertEquals(getChannelType(count), entry.getValue().getType());
+	        assertEquals("resource-" + count, entry.getValue().getResource());
 	        count++;
 	    }
 	    count = 0;
-	    for (ProtocolURL url: endpoint.getProtocolURLs())
+	    for (Map.Entry<String, String> entry:
+	            endpoint.getProtocolURLMap().entrySet())
 	    {
-	        assertEquals("protocol-" + count, url.protocol);
-	        assertEquals("url-" + count, url.url);
+	        assertEquals("protocol-" + count, entry.getKey());
+	        assertEquals("url-" + count, entry.getValue());
 	        count++;
 	    }
 	}
@@ -102,14 +103,15 @@ public class RabbitSocksAPITest extends TestCase
 		Endpoint endpoint3 = api.getEndpoint(endpointName);		
 		assertNotNull(endpoint3);		
 		assertEquals(endpoint1.getName(), endpoint3.getName());		
-		assertSame(endpoint1.getChannelDefinitions(), endpoint3.getChannelDefinitions());		
+		assertSameChannelMaps(endpoint1.getChannelDefinitions(),
+		                      endpoint3.getChannelDefinitions());		
 		assertNotNull(endpoint3.getKey());		
-		assertEquals(1, endpoint3.getProtocolURLs().size());		
-		ProtocolURL url = endpoint3.getProtocolURLs().get(0);		
-		assertEquals("websockets", url.protocol);
-		assertNotNull(url.url);
+		dumpProtocolMap(endpoint3.getProtocolURLMap());		
+		String url = endpoint3.getProtocolURLMap().get("websockets");		
+		assertNotNull(url);		
 	}
-			
+	
+
 	public void testListEndpointNames() throws Exception
 	{
 		RabbitSocksAPI api = getAPI();
@@ -164,7 +166,7 @@ public class RabbitSocksAPITest extends TestCase
 		{
 			Endpoint endpoint = api.getEndpoint("endpoint-" + i);			
 			assertEquals("endpoint-" + i, endpoint.getName());			
-			assertSame(endpoints[i].getChannelDefinitions(), endpoint.getChannelDefinitions());
+			assertSameChannelMaps(endpoints[i].getChannelDefinitions(), endpoint.getChannelDefinitions());
 		}		
 		try
 		{
@@ -220,30 +222,85 @@ public class RabbitSocksAPITest extends TestCase
 		catch (RabbitSocksAPIException e)
 		{
 			assertEquals(404, e.getResponseCode());
-		}		
-		Endpoint endpoint = genEndpoint("endpoint-0", 10);
+		}				
+		final String endpointName = "endpoint-0";		
+		Endpoint endpoint = genEndpoint(endpointName, 10);
 		api.createEndpoint(endpoint);		
-		List<Connection> conns = api.listConnectionsForEndpoint("endpoint-0");		
-		assertTrue(conns.isEmpty());
-		
-		//TODO find some way of creating connections so we can list them
-		//properly	
+		List<String> conns = api.listConnectionsForEndpoint(endpointName);		
+		assertTrue(conns.isEmpty());		
+		Endpoint endpoint2 = api.getEndpoint(endpointName);		
+		String url = endpoint2.getProtocolURLMap().get("websockets");
+		assertNotNull(url);		
+		String ticket = api.generateTicket(endpointName, "joe bloggs", 1000);
+		final int numWS = 10;		
+		Websocket[] wsa = new Websocket[numWS];
+		for (int i = 0; i < numWS; i++)
+		{		
+		    wsa[i] = this.createWebsocket(url);
+		}		
+		conns = api.listConnectionsForEndpoint(endpointName); 		
+		//Connection shouldn't be visible as a connection until ticket is sent
+		assertTrue(conns.isEmpty());		
+		for (int i = 0; i < numWS; i++)
+        {
+		    //First thing we do is send the ticket
+		    wsa[i].send(ticket);		    
+        }		
+		waitForConnections(api, endpointName, numWS);			
+		for (int i = 0; i < numWS; i++)
+        {
+		    wsa[i].close();
+        }		
+		//FIXME - we should wait for connections to close too - but right
+		//now connection close code is not handled properly on the server
+		//this.waitForConnections(api, endpointName, 0);
+	}
+	
+	private void sendMessage(final Websocket ws, final String channelName,
+	                         final String message)
+	    throws IOException
+	{
+	    StringBuffer buff = new StringBuffer("{'channel':'");
+	    buff.append(channelName).append("',message:'").append(message).append("'}");
+	    ws.send(buff.toString());
+	}
+	
+	/*
+	 * Waiting for connections after sending a ticket will take an
+	 * indeterminate amount of time, so we retry in a loop and
+	 * time out 
+	 */
+	private void waitForConnections(final RabbitSocksAPI api, final String endpointName,
+	                                final int count)	
+	    throws Exception
+	{
+	    final long timeout = 5000;
+	    long start = System.currentTimeMillis();
+	    do
+	    {
+	        List<String> conns = api.listConnectionsForEndpoint(endpointName);
+	        
+	        if (conns.size() == count)
+	        {
+	            return;
+	        }
+	        
+	        Thread.sleep(10);
+	    }
+	    while (System.currentTimeMillis() - start < timeout);
+	    fail("Timedout waiting for connections " + count);
 	}
 		
-	private void assertSame(List<ChannelDefinition> defs1,
-							List<ChannelDefinition> defs2)
+	private void assertSameChannelMaps(final Map<String, ChannelDefinition> defs1,
+							           final Map<String, ChannelDefinition> defs2)
 	{
 		assertEquals(defs1.size(), defs2.size());
-		
-		Iterator<ChannelDefinition> iter1 = defs1.iterator();
-		Iterator<ChannelDefinition> iter2 = defs2.iterator();
-		
-		while (iter1.hasNext())
+
+		for (Map.Entry<String, ChannelDefinition> entry: defs1.entrySet())
 		{
-			ChannelDefinition def1 = iter1.next();
-			ChannelDefinition def2 = iter2.next();
-			
-			assertEquals(def1, def2);
+		    ChannelDefinition otherDef = defs2.get(entry.getKey());
+		    assertNotNull(otherDef);
+		    assertEquals(entry.getValue(), otherDef);
 		}
 	}
 	
@@ -277,7 +334,7 @@ public class RabbitSocksAPITest extends TestCase
             RabbitSocksAPIFactory.getEndpointBuilder().buildEndpoint(endpointName);        
         for (int i = 0; i < numChannels; i++)
         {
-            endpoint.addChannelDefinition("channel-" + i, getChannelType(i),
+            endpoint.putChannelDefinition("channel-" + i, getChannelType(i),
                                           "resource-" + i);
         }        
         return endpoint;
@@ -308,4 +365,22 @@ public class RabbitSocksAPITest extends TestCase
                 throw new IllegalArgumentException("Never gets here");
         }
     }
+    
+    private Websocket createWebsocket(final String surl) throws Exception
+    {
+        URI uri = new URI(surl);
+        Websocket ws = new Websocket(uri);
+        ws.connect();
+        return ws;
+    }
+    
+    private void dumpProtocolMap(Map<String, String> protocolMap)
+    {
+        for (Map.Entry<String, String> entry: protocolMap.entrySet())
+        {
+            System.out.println(entry.getKey() + ":" + entry.getValue());
+        }
+    }
+    
+    
 }

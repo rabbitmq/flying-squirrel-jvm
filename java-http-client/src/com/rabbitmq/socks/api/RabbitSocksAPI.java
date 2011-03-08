@@ -15,7 +15,7 @@ public interface RabbitSocksAPI
 	
 	Endpoint getEndpoint(String endpointName) throws RabbitSocksAPIException;
 	
-	List<Connection> listConnectionsForEndpoint(String endpointName)
+	List<String> listConnectionsForEndpoint(String endpointName)
 		throws RabbitSocksAPIException;
 	
 	List<String> listEndpointNames() throws RabbitSocksAPIException;
