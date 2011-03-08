@@ -1,0 +1,11 @@
+To build:
+
+1) make sure you have Apache Ant installed and on your PATH.
+
+2) type "ant"
+
+3) jar file will be created in ./dist/lib. The jar file has a run-time dependency on the jackson**.jar (this is in the lib directory). Jackson is used for parsing JSON. All other dependencies are required by the tests only
+
+To run tests:
+
+ant tests

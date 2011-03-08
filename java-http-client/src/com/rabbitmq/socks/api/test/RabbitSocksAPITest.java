@@ -1,13 +1,9 @@
 package com.rabbitmq.socks.api.test;
 
-import java.io.IOException;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import junit.framework.TestCase;
 
 import com.rabbitmq.socks.api.ChannelDefinition;
 import com.rabbitmq.socks.api.ChannelType;
@@ -22,7 +18,7 @@ import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
  * @author tfox
  *
  */
-public class RabbitSocksAPITest extends TestCase
+public class RabbitSocksAPITest extends APITestBase
 {
 	protected void setUp() throws Exception
 	{
@@ -250,14 +246,6 @@ public class RabbitSocksAPITest extends TestCase
 		//this.waitForConnections(api, endpointName, 0);
 	}
 	
-	private void sendMessage(final Websocket ws, final String channelName,
-	                         final String message)
-	    throws IOException
-	{
-	    StringBuffer buff = new StringBuffer("{'channel':'");
-	    buff.append(channelName).append("',message:'").append(message).append("'}");
-	    ws.send(buff.toString());
-	}
 	
 	/*
 	 * Waiting for connections after sending a ticket will take an
@@ -297,19 +285,7 @@ public class RabbitSocksAPITest extends TestCase
 		    assertEquals(entry.getValue(), otherDef);
 		}
 	}
-	
-	private void deleteAllEndpoints() throws Exception
-	{
-		RabbitSocksAPI api = RabbitSocksAPIFactory.getClient("localhost", 55672);
 		
-		List<String> endpointNames = api.listEndpointNames();
-		
-		for (String endpointName: endpointNames)
-		{
-			api.deleteEndpoint(endpointName);
-		}
-	}
-	
 	private Endpoint[] createEndpoints(final RabbitSocksAPI api, final int count)
        throws Exception
     {  
@@ -334,11 +310,6 @@ public class RabbitSocksAPITest extends TestCase
         return endpoint;
     }
     
-    private RabbitSocksAPI getAPI()
-    {
-        return RabbitSocksAPIFactory.getClient("localhost", 55672);
-    }
-    
     private ChannelType getChannelType(final int i)
     {
         switch (i % 6)
@@ -359,22 +330,5 @@ public class RabbitSocksAPITest extends TestCase
                 throw new IllegalArgumentException("Never gets here");
         }
     }
-    
-    private Websocket createWebsocket(final String surl) throws Exception
-    {
-        URI uri = new URI(surl);
-        Websocket ws = new Websocket(uri);
-        ws.connect();
-        return ws;
-    }
-    
-    private void dumpProtocolMap(Map<String, String> protocolMap)
-    {
-        for (Map.Entry<String, String> entry: protocolMap.entrySet())
-        {
-            System.out.println(entry.getKey() + ":" + entry.getValue());
-        }
-    }
-    
-    
+ 
 }
