@@ -117,7 +117,6 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
             }
             Endpoint endpoint = new EndpointImpl(endpointName);
             JsonFactory f = new JsonFactory();
-            
             JsonParser jp = f.createJsonParser(createReader(conn));
             jp.nextToken();
             while (jp.nextToken() != null)
@@ -151,11 +150,9 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
                 else if (ENDPOINT_URLS_FIELD.equals(fieldName))
                 {
                     jp.nextToken();
-                    JsonToken tok;
                     while (true)
                     {
-                        tok = jp.nextToken();
-                        if (tok == JsonToken.END_OBJECT)
+                        if (jp.nextToken() == JsonToken.END_OBJECT)
                         {
                             break;
                         }

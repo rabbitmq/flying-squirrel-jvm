@@ -38,8 +38,7 @@ public class RabbitSocksAPITest extends TestCase
 	
 	public void testBuildEndpoint() throws Exception
 	{
-	    EndpointBuilder builder = RabbitSocksAPIFactory.getEndpointBuilder();
-	    
+	    EndpointBuilder builder = RabbitSocksAPIFactory.getEndpointBuilder();	    
 	    final String endpointName = "my-endpoint";
 	    Endpoint endpoint = builder.buildEndpoint(endpointName);
 	    int channelCount = 10;
@@ -80,12 +79,10 @@ public class RabbitSocksAPITest extends TestCase
 		String endpointName = "endpoint-1";		
 		Endpoint endpoint1 = genEndpoint(endpointName, 10);				
 		RabbitSocksAPI api = getAPI();	
-		api.createEndpoint(endpoint1);
-		
+		api.createEndpoint(endpoint1);		
 		//Creating again with exact same definition should succeed		
 		api.createEndpoint(endpoint1);
-		api.createEndpoint(endpoint1);
-		
+		api.createEndpoint(endpoint1);		
 		//Create a new endpoint with same name but different definitions
 		//Should fail		
 		Endpoint endpoint2 = genEndpoint(endpointName, 5);   	
@@ -98,7 +95,6 @@ public class RabbitSocksAPITest extends TestCase
 		{
 			assertEquals(409, e.getResponseCode());
 		}
-		
 		//Get the endpoint and assert it's the same as the one we created		
 		Endpoint endpoint3 = api.getEndpoint(endpointName);		
 		assertNotNull(endpoint3);		
@@ -106,12 +102,10 @@ public class RabbitSocksAPITest extends TestCase
 		assertSameChannelMaps(endpoint1.getChannelDefinitions(),
 		                      endpoint3.getChannelDefinitions());		
 		assertNotNull(endpoint3.getKey());		
-		dumpProtocolMap(endpoint3.getProtocolURLMap());		
 		String url = endpoint3.getProtocolURLMap().get("websockets");		
 		assertNotNull(url);		
 	}
 	
-
 	public void testListEndpointNames() throws Exception
 	{
 		RabbitSocksAPI api = getAPI();
