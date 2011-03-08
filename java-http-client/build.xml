@@ -42,6 +42,7 @@
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+    <delete dir="${tests_report}"/>
   </target>
 
   <target name="tests" depends="compile">
