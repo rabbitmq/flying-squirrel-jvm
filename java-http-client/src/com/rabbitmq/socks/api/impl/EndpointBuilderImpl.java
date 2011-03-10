@@ -6,13 +6,13 @@ import com.rabbitmq.socks.api.EndpointBuilder;
 /**
  * 
  * @author tfox
- *
+ * 
  */
 public class EndpointBuilderImpl implements EndpointBuilder
 {
-	public Endpoint buildEndpoint(final String name)
-	{
-		return new EndpointImpl(name);
-	}
-
+    @Override
+    public Endpoint buildEndpoint(final String name)
+    {
+        return new EndpointImpl(name);
+    }
 }

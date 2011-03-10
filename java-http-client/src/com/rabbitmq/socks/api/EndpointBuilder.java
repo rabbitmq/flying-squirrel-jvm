@@ -3,9 +3,9 @@ package com.rabbitmq.socks.api;
 /**
  * 
  * @author tfox
- *
+ * 
  */
 public interface EndpointBuilder
 {
-	Endpoint buildEndpoint(String name);
+    Endpoint buildEndpoint(String name);
 }

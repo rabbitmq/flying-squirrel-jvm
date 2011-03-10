@@ -13,50 +13,54 @@ import com.rabbitmq.socks.websocket.impl.WebsocketImpl;
 /**
  * 
  * @author tfox
- *
+ * 
  */
 public class ConnectionImpl implements Connection, WebsocketListener
 {
     private final Websocket ws;
-    
+
     public ConnectionImpl(final URI uri, final Executor executor)
     {
-        ws = new WebsocketImpl(uri, executor);        
+        ws = new WebsocketImpl(uri, executor);
         ws.setListener(this);
     }
-    
+
+    @Override
     public void connect(String ticket) throws IOException
-    { 
+    {
         ws.connect();
         ws.send(ticket);
     }
-    
-    private Map<String, ChannelListener> listeners = 
-        new ConcurrentHashMap<String, ChannelListener>();
 
+    private final Map<String, ChannelListener> listeners = new ConcurrentHashMap<String, ChannelListener>();
+
+    @Override
     public void setChannelListener(String channelName, ChannelListener listener)
     {
         listeners.put(channelName, listener);
     }
 
+    @Override
     public void send(Message message) throws IOException
     {
         ws.send(message.toJSON());
     }
-    
+
+    @Override
     public void close() throws IOException
     {
         ws.close();
     }
-    
+
+    @Override
     public void onMessage(final String json)
     {
-        Message msg = new Message();        
+        Message msg = new Message();
         try
         {
-            msg.fromJSON(json);        
-            ChannelListener listener = listeners.get(msg.getChannelName());  
-            
+            msg.fromJSON(json);
+            ChannelListener listener = listeners.get(msg.getChannelName());
+
             if (listener != null)
             {
                 listener.onMessage(msg);
@@ -65,6 +69,6 @@ public class ConnectionImpl implements Connection, WebsocketListener
         catch (IOException e)
         {
             System.err.println("Failed to read message " + e.getMessage());
-        }        
+        }
     }
 }

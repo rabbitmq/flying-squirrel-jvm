@@ -10,19 +10,19 @@ import org.codehaus.jackson.JsonToken;
 /**
  * 
  * @author tfox
- *
+ * 
  */
 public class Message
-{       
+{
     public void fromJSON(final String json) throws IOException
     {
         JsonFactory factory = new JsonFactory();
         JsonParser jp = factory.createJsonParser(new StringReader(json));
-        jp.nextToken();            
+        jp.nextToken();
         while (jp.nextToken() != JsonToken.END_OBJECT)
-        {               
+        {
             String fieldName = jp.getCurrentName();
-            
+
             if ("channel".equals(fieldName))
             {
                 jp.nextToken();
@@ -45,24 +45,24 @@ public class Message
             }
         }
     }
-    
+
     public Message()
-    {            
+    {
     }
 
     public Message(final String channelName)
     {
         this.channel = channelName;
     }
-    
+
     private String channel;
-    
+
     private String reply;
-    
+
     private String identity;
 
     private String message;
-    
+
     public String getReply()
     {
         return reply;
@@ -87,12 +87,12 @@ public class Message
     {
         this.channel = channelName;
     }
-    
+
     public String getChannelName()
     {
         return channel;
     }
- 
+
     public String getMessage()
     {
         return message;
@@ -102,12 +102,12 @@ public class Message
     {
         this.message = msg;
     }
-    
+
     public String toJSON()
     {
         StringBuffer buff = new StringBuffer("{\"channel\":\"");
         buff.append(channel).append("\",\"message\":\"").append(message)
-                .append("\"");
+        .append("\"");
         if (identity != null)
         {
             buff.append(",\"identity\":\"").append(identity).append("\"");
@@ -117,7 +117,7 @@ public class Message
             buff.append(",\"reply\":\"").append(reply).append("\"");
         }
         buff.append('}');
-       // System.out.println("json is:" + buff.toString());
+        // System.out.println("json is:" + buff.toString());
         return buff.toString();
-    }        
-}       
+    }
+}

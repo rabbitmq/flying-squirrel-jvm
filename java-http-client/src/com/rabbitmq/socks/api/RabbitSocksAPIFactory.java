@@ -6,17 +6,17 @@ import com.rabbitmq.socks.api.impl.RabbitSocksAPIImpl;
 /**
  * 
  * @author tfox
- *
+ * 
  */
 public class RabbitSocksAPIFactory
 {
-	public static RabbitSocksAPI getClient(String hostName, int port)
-	{
-		return new RabbitSocksAPIImpl(hostName, port);
-	}
-	
-	public static EndpointBuilder getEndpointBuilder()
-	{
-		return new EndpointBuilderImpl();
-	}
+    public static RabbitSocksAPI getClient(String hostName, int port)
+    {
+        return new RabbitSocksAPIImpl(hostName, port);
+    }
+
+    public static EndpointBuilder getEndpointBuilder()
+    {
+        return new EndpointBuilderImpl();
+    }
 }

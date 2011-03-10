@@ -15,7 +15,7 @@ import com.rabbitmq.socks.client.api.ConnectionImpl;
 /**
  * 
  * @author tfox
- *
+ * 
  */
 public abstract class APITestBase extends TestCase
 {
@@ -23,7 +23,7 @@ public abstract class APITestBase extends TestCase
     protected void deleteAllEndpoints() throws Exception
     {
         RabbitSocksAPI api = RabbitSocksAPIFactory
-                .getClient("localhost", 55672);
+        .getClient("localhost", 55672);
 
         List<String> endpointNames = api.listEndpointNames();
 
@@ -41,7 +41,8 @@ public abstract class APITestBase extends TestCase
     protected Connection createConnection(final String url) throws Exception
     {
         URI uri = new URI(url);
-        Connection connection = new ConnectionImpl(uri, Executors.newSingleThreadExecutor());        
+        Connection connection = new ConnectionImpl(uri,
+                        Executors.newSingleThreadExecutor());
         return connection;
     }
 
@@ -51,5 +52,5 @@ public abstract class APITestBase extends TestCase
         {
             System.out.println(entry.getKey() + ":" + entry.getValue());
         }
-    }    
+    }
 }

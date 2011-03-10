@@ -49,31 +49,34 @@ import com.rabbitmq.socks.websocket.Websocket;
  * 
  * @author tfox
  * 
- * Originally based on file from https://github.com/adamac/Java-WebSocket-client
+ *         Originally based on file from
+ *         https://github.com/adamac/Java-WebSocket-client
  * 
- * Which was released with the following licence:
+ *         Which was released with the following licence:
  * 
- * The MIT License
- *
- * Copyright (c) 2009 Adam MacBeth
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ *         The MIT License
  * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ *         Copyright (c) 2009 Adam MacBeth
+ * 
+ *         Permission is hereby granted, free of charge, to any person obtaining
+ *         a copy of this software and associated documentation files (the
+ *         "Software"), to deal in the Software without restriction, including
+ *         without limitation the rights to use, copy, modify, merge, publish,
+ *         distribute, sublicense, and/or sell copies of the Software, and to
+ *         permit persons to whom the Software is furnished to do so, subject to
+ *         the following conditions:
+ * 
+ *         The above copyright notice and this permission notice shall be
+ *         included in all copies or substantial portions of the Software.
+ * 
+ *         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ *         EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ *         MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ *         NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ *         BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ *         ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ *         CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *         SOFTWARE.
  */
 public class WebsocketImpl implements Websocket
 {
@@ -88,25 +91,26 @@ public class WebsocketImpl implements Websocket
     private HashMap<String, String> headers;
 
     private final Executor executor;
-    
+
     private volatile boolean closed = true;
-    
+
     private volatile WebsocketListener listener;
 
     public WebsocketImpl(URI url, Executor executor)
     {
         uri = url;
-        
+
         this.executor = executor;
 
         String protocol = uri.getScheme();
         if (!protocol.equals("ws") && !protocol.equals("wss"))
         {
             throw new IllegalArgumentException("Unsupported protocol: "
-                    + protocol);
+                            + protocol);
         }
     }
 
+    @Override
     public void setListener(WebsocketListener listener)
     {
         this.listener = listener;
@@ -122,6 +126,7 @@ public class WebsocketImpl implements Websocket
         return socket;
     }
 
+    @Override
     public void connect() throws IOException
     {
         String host = uri.getHost();
@@ -149,18 +154,18 @@ public class WebsocketImpl implements Websocket
             for (Entry<String, String> entry : headers.entrySet())
             {
                 extraHeaders.append(entry.getKey() + ": " + entry.getValue()
-                        + "\r\n");
+                                + "\r\n");
             }
         }
         String request = "GET " + path + " HTTP/1.1\r\n"
-                + "Upgrade: WebSocket\r\n" + "Connection: Upgrade\r\n"
-                + "Host: " + host + "\r\n" + "Origin: " + origin + "\r\n"
-                + extraHeaders.toString() + "\r\n";
+        + "Upgrade: WebSocket\r\n" + "Connection: Upgrade\r\n"
+        + "Host: " + host + "\r\n" + "Origin: " + origin
+        + "\r\n" + extraHeaders.toString() + "\r\n";
         outputStream.write(request.getBytes());
         outputStream.flush();
         inputStream = new BufferedInputStream(socket.getInputStream());
-        BufferedReader reader = new BufferedReader(
-                new InputStreamReader(inputStream));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+                        inputStream));
         String header = reader.readLine();
         if (!header.equals("HTTP/1.1 101 Web Socket Protocol Handshake"))
         {
@@ -179,10 +184,11 @@ public class WebsocketImpl implements Websocket
         {
             throw new IOException("Invalid handshake response");
         }
-        closed = false;        
+        closed = false;
         startListening();
     }
 
+    @Override
     public synchronized void send(String str) throws IOException
     {
         if (closed)
@@ -194,7 +200,8 @@ public class WebsocketImpl implements Websocket
         outputStream.write(0xff);
         outputStream.flush();
     }
-    
+
+    @Override
     public synchronized void close() throws IOException
     {
         closed = true;
@@ -245,6 +252,7 @@ public class WebsocketImpl implements Websocket
     {
         executor.execute(new Runnable()
         {
+            @Override
             public void run()
             {
                 while (!closed)
@@ -257,7 +265,7 @@ public class WebsocketImpl implements Websocket
                     catch (IOException e)
                     {
                         System.err.println("Failed to receive message "
-                                + e.getMessage());
+                                        + e.getMessage());
                     }
                 }
             }
@@ -277,7 +285,8 @@ public class WebsocketImpl implements Websocket
             {
                 b = inputStream.read() & 0x7f;
                 len = len * 128 + b;
-            } while ((b & 0x80) != 0x80);
+            }
+            while ((b & 0x80) != 0x80);
 
             for (int i = 0; i < len; i++)
             {
