@@ -1,14 +1,16 @@
 package com.rabbitmq.socks.api.test;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import junit.framework.TestCase;
 
 import com.rabbitmq.socks.api.RabbitSocksAPI;
 import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
+import com.rabbitmq.socks.client.api.Connection;
+import com.rabbitmq.socks.client.api.ConnectionImpl;
 
 /**
  * 
@@ -17,15 +19,6 @@ import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
  */
 public abstract class APITestBase extends TestCase
 {
-    protected void sendMessage(final Websocket ws, final String channelName,
-            final String message) throws IOException
-    {
-        StringBuffer buff = new StringBuffer("{\"channel\":\"");
-        buff.append(channelName).append("\",\"message\":\"").append(message)
-                .append("\"}");
-        String str = buff.toString();
-        ws.send(str);
-    }
 
     protected void deleteAllEndpoints() throws Exception
     {
@@ -45,12 +38,11 @@ public abstract class APITestBase extends TestCase
         return RabbitSocksAPIFactory.getClient("localhost", 55672);
     }
 
-    protected Websocket createWebsocket(final String surl) throws Exception
+    protected Connection createConnection(final String url) throws Exception
     {
-        URI uri = new URI(surl);
-        Websocket ws = new Websocket(uri);
-        ws.connect();
-        return ws;
+        URI uri = new URI(url);
+        Connection connection = new ConnectionImpl(uri, Executors.newSingleThreadExecutor());        
+        return connection;
     }
 
     protected void dumpProtocolMap(Map<String, String> protocolMap)
@@ -59,7 +51,5 @@ public abstract class APITestBase extends TestCase
         {
             System.out.println(entry.getKey() + ":" + entry.getValue());
         }
-    }
-        
-
+    }    
 }

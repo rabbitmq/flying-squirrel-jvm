@@ -9,13 +9,13 @@ import java.util.List;
  */
 public interface RabbitSocksAPI
 {
-	void createEndpoint(Endpoint endpoint) throws RabbitSocksAPIException;
+	Endpoint createEndpoint(Endpoint endpoint) throws RabbitSocksAPIException;
 	
 	void deleteEndpoint(String endpointName) throws RabbitSocksAPIException;
 	
 	Endpoint getEndpoint(String endpointName) throws RabbitSocksAPIException;
 	
-	List<Connection> listConnectionsForEndpoint(String endpointName)
+	List<ConnectionInfo> listConnectionsForEndpoint(String endpointName)
 		throws RabbitSocksAPIException;
 	
 	List<String> listEndpointNames() throws RabbitSocksAPIException;

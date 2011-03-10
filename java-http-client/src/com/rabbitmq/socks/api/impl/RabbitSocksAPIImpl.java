@@ -17,12 +17,10 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.TypeFactory;
 
 import com.rabbitmq.socks.api.ChannelDefinition;
 import com.rabbitmq.socks.api.ChannelType;
-import com.rabbitmq.socks.api.Connection;
+import com.rabbitmq.socks.api.ConnectionInfo;
 import com.rabbitmq.socks.api.Endpoint;
 import com.rabbitmq.socks.api.RabbitSocksAPI;
 import com.rabbitmq.socks.api.RabbitSocksAPIException;
@@ -53,16 +51,21 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
         endpointURL = "http://" + host + ":" + port + "/socks-api/endpoints/";
     }
 
-    public void createEndpoint(final Endpoint endpoint)
+    public Endpoint createEndpoint(final Endpoint endpoint)
         throws RabbitSocksAPIException
     {
+        if (endpoint == null)
+        {
+            throw new IllegalArgumentException("endpoint cannot be null");
+        }
+        validateEndpointName(endpoint.getName());
         try
         {
             String uri = endpointURL + endpoint.getName();
             HttpURLConnection conn = doRequest(uri, PUT_METHOD, true);
             Writer writer = createWriter(conn);
-            JsonFactory f = new JsonFactory();
-            JsonGenerator g = f.createJsonGenerator(writer);
+            JsonFactory factory = new JsonFactory();
+            JsonGenerator g = factory.createJsonGenerator(writer);
             g.writeStartObject();
             for (Map.Entry<String, ChannelDefinition> entry:
                 endpoint.getChannelDefinitions().entrySet())
@@ -78,8 +81,7 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
             int respCode = conn.getResponseCode();
             if (respCode == 200)
             {
-                // OK
-                return;
+                // OK                
             }
             else if (respCode == 409)
             {
@@ -90,16 +92,20 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
             {
                 throwUnexpectedResponseCode(respCode);
             }
+            Reader reader = createReader(conn);
+            
+            return parseEndpoint(endpoint.getName(), reader, factory);
         }
         catch (IOException e)
         {
             throw new RabbitSocksAPIException(e);
         }
     }
-
+    
     public Endpoint getEndpoint(final String endpointName)
         throws RabbitSocksAPIException
     {
+        validateEndpointName(endpointName);
         try
         {
             String uri = endpointURL + endpointName;
@@ -118,54 +124,8 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
             {
                 throwUnexpectedResponseCode(respCode);
             }
-            Endpoint endpoint = new EndpointImpl(endpointName);
-            JsonFactory f = new JsonFactory();
-            JsonParser jp = f.createJsonParser(createReader(conn));
-            jp.nextToken();
-            while (jp.nextToken() != null)
-            {
-                String fieldName = jp.getCurrentName();
-                if (ENDPOINT_KEY_FIELD.equals(fieldName))
-                {
-                    jp.nextToken();
-                    endpoint.setKey(jp.getText());
-                }
-                else if (ENDPOINT_DEFS_FIELD.equals(fieldName))
-                {
-                    while (true)
-                    {
-                        jp.nextToken();
-                        JsonToken tok = jp.nextToken();
-                        if (tok == JsonToken.END_OBJECT)
-                        {
-                            break;
-                        }
-                        String channelName = jp.getCurrentName();
-                        jp.nextToken();
-                        jp.nextToken();
-                        ChannelType channelType = ChannelType.fromString(jp
-                                .getText());
-                        jp.nextToken();
-                        endpoint.putChannelDefinition(channelName, channelType,
-                                                      jp.getText());
-                    }
-                }
-                else if (ENDPOINT_URLS_FIELD.equals(fieldName))
-                {
-                    jp.nextToken();
-                    while (true)
-                    {
-                        if (jp.nextToken() == JsonToken.END_OBJECT)
-                        {
-                            break;
-                        }
-                        jp.nextToken();
-                        endpoint.putProtocolURL(jp.getCurrentName(),
-                                                jp.getText());
-                    }
-                }
-            }
-            return endpoint;
+            return parseEndpoint(endpointName, createReader(conn),
+                                 new JsonFactory());
         }
         catch (IOException e)
         {
@@ -176,6 +136,7 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
     public void deleteEndpoint(final String endpointName)
         throws RabbitSocksAPIException
     {
+        validateEndpointName(endpointName);
         try
         {
             String uri = endpointURL + endpointName;
@@ -192,9 +153,11 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
         }
     }
     
-    public List<Connection> listConnectionsForEndpoint(final String endpointName)
+    public List<ConnectionInfo> listConnectionsForEndpoint(final String endpointName)
             throws RabbitSocksAPIException
     {
+        System.out.println("calling listconnectionsforendpoinkt");
+        validateEndpointName(endpointName);
         try
         {
             String uri = endpointURL + endpointName + "/connections";
@@ -204,20 +167,42 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
             {
                 throwUnexpectedResponseCode(respCode);
             }
-
-	    ObjectMapper mapper = new ObjectMapper();
-
-            Reader reader = createReader(conn);
-	    List<Connection> connections =
-		    mapper.readValue(reader,
-				     TypeFactory.collectionType(
-					     ArrayList.class,
-					     ConnectionImpl.class));
+            Reader reader = createReader(conn);      
+            JsonFactory f = new JsonFactory();
+            JsonParser jp = f.createJsonParser(reader);
+            List<ConnectionInfo> connections = new ArrayList<ConnectionInfo>();
+            JsonToken tok = jp.nextToken();
+            System.out.println("tok is " + tok);
+            while ((tok = jp.nextToken()) != JsonToken.END_ARRAY)
+            {   
+                System.out.println("tok " + tok);
+                tok = jp.nextToken();          
+                System.out.println("tok " + tok);
+                jp.nextToken();
+                String url = jp.getText();                               
+                url = jp.getText();
+                jp.nextToken();
+                jp.nextToken();
+                String guid = jp.getText();
+                jp.nextToken();
+                jp.nextToken();
+                String epName = jp.getText();
+                jp.nextToken();
+                jp.nextToken();
+                String protocol = jp.getText();
+                jp.nextToken();
+                jp.nextToken();
+                String meta = jp.getText();   
+                System.out.println("CReated conn info");
+                ConnectionInfo connInfo =
+                    new ConnectionInfoImpl(url, guid, epName, protocol, meta);
+                connections.add(connInfo);
+                jp.nextToken();
+            }
             return connections;
         }
         catch (IOException e)
-        {
-	    System.out.println(e);
+        {	    
             throw new RabbitSocksAPIException(e);
         }
     }
@@ -254,9 +239,11 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
     }
 
     public String generateTicket(final String endpointName,
-            final String identity, final long timeout)
+                                 final String identity, final long timeout)
         throws RabbitSocksAPIException
     {
+        validateEndpointName(endpointName);
+        validateIdentity(identity);
         try
         {
             HttpURLConnection conn = doRequest(endpointURL + endpointName
@@ -302,6 +289,80 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
 
     // Private methods --------------------------------------------------------
 
+    private void validateEndpointName(String endpointName)
+    {
+        validateStringArg(endpointName, "endpoint name");
+    }
+    
+    private void validateIdentity(String identity)
+    {
+        validateStringArg(identity, "identity");
+    }
+    
+    private void validateStringArg(final String arg, final String argName)
+    {
+        if (arg == null)
+        {
+            throw new IllegalArgumentException(argName + " cannot be null");
+        }
+        if ("".equals(arg))
+        {
+            throw new IllegalArgumentException(argName + " cannot be an empty string");
+        }
+    }
+        
+    private Endpoint parseEndpoint(final String endpointName, final Reader reader,
+                                   final JsonFactory factory)
+            throws IOException
+    {
+        Endpoint endpoint = new EndpointImpl(endpointName);
+        JsonParser jp = factory.createJsonParser(reader);
+        jp.nextToken();
+        while (jp.nextToken() != null)
+        {
+            String fieldName = jp.getCurrentName();
+            if (ENDPOINT_KEY_FIELD.equals(fieldName))
+            {
+                jp.nextToken();
+                endpoint.setKey(jp.getText());
+            }
+            else if (ENDPOINT_DEFS_FIELD.equals(fieldName))
+            {
+                while (true)
+                {
+                    jp.nextToken();
+                    JsonToken tok = jp.nextToken();
+                    if (tok == JsonToken.END_OBJECT)
+                    {
+                        break;
+                    }
+                    String channelName = jp.getCurrentName();
+                    jp.nextToken();
+                    jp.nextToken();
+                    ChannelType channelType = ChannelType.fromString(jp.getText());
+                    jp.nextToken();
+                    endpoint.putChannelDefinition(channelName, channelType,
+                                                  jp.getText());
+                }
+            }
+            else if (ENDPOINT_URLS_FIELD.equals(fieldName))
+            {
+                jp.nextToken();
+                while (true)
+                {
+                    if (jp.nextToken() == JsonToken.END_OBJECT)
+                    {
+                        break;
+                    }
+                    jp.nextToken();
+                    endpoint.putProtocolURL(jp.getCurrentName(),
+                                            jp.getText());
+                }
+            }
+        }
+        return endpoint;
+    }
+    
     private HttpURLConnection doRequest(final String uri, final String method,
             final boolean contentType) throws IOException
     {
