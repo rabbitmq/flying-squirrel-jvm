@@ -17,9 +17,12 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
 
 import com.rabbitmq.socks.api.ChannelDefinition;
 import com.rabbitmq.socks.api.ChannelType;
+import com.rabbitmq.socks.api.Connection;
 import com.rabbitmq.socks.api.Endpoint;
 import com.rabbitmq.socks.api.RabbitSocksAPI;
 import com.rabbitmq.socks.api.RabbitSocksAPIException;
@@ -189,7 +192,7 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
         }
     }
     
-    public List<String> listConnectionsForEndpoint(final String endpointName)
+    public List<Connection> listConnectionsForEndpoint(final String endpointName)
             throws RabbitSocksAPIException
     {
         try
@@ -201,19 +204,20 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
             {
                 throwUnexpectedResponseCode(respCode);
             }
-            Reader reader = createReader(conn);            
-            JsonFactory f = new JsonFactory();
-            JsonParser jp = f.createJsonParser(reader);
-            List<String> conns = new ArrayList<String>();
-            jp.nextToken();
-            while (jp.nextToken() != JsonToken.END_ARRAY)
-            {
-                conns.add(jp.getText());               
-            }
-            return conns;
+
+	    ObjectMapper mapper = new ObjectMapper();
+
+            Reader reader = createReader(conn);
+	    List<Connection> connections =
+		    mapper.readValue(reader,
+				     TypeFactory.collectionType(
+					     ArrayList.class,
+					     ConnectionImpl.class));
+            return connections;
         }
         catch (IOException e)
         {
+	    System.out.println(e);
             throw new RabbitSocksAPIException(e);
         }
     }

@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.rabbitmq.socks.api.ChannelDefinition;
 import com.rabbitmq.socks.api.ChannelType;
+import com.rabbitmq.socks.api.Connection;
 import com.rabbitmq.socks.api.Endpoint;
 import com.rabbitmq.socks.api.EndpointBuilder;
 import com.rabbitmq.socks.api.RabbitSocksAPI;
@@ -216,7 +217,7 @@ public class RabbitSocksAPITest extends APITestBase
 		final String endpointName = "endpoint-0";		
 		Endpoint endpoint = genEndpoint(endpointName, 10);
 		api.createEndpoint(endpoint);		
-		List<String> conns = api.listConnectionsForEndpoint(endpointName);		
+		List<Connection> conns = api.listConnectionsForEndpoint(endpointName);		
 		assertTrue(conns.isEmpty());		
 		Endpoint endpoint2 = api.getEndpoint(endpointName);		
 		String url = endpoint2.getProtocolURLMap().get("websockets");
@@ -260,7 +261,7 @@ public class RabbitSocksAPITest extends APITestBase
 	    long start = System.currentTimeMillis();
 	    do
 	    {
-	        List<String> conns = api.listConnectionsForEndpoint(endpointName);
+	        List<Connection> conns = api.listConnectionsForEndpoint(endpointName);
 	        
 	        if (conns.size() == count)
 	        {
