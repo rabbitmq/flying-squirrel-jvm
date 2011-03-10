@@ -2,9 +2,9 @@ package com.rabbitmq.socks.api.test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +23,7 @@ import com.rabbitmq.socks.client.api.Message;
  */
 public class EndToEndTest extends APITestBase
 {
-    private RabbitSocksAPI      api;
+    private RabbitSocksAPI api;
 
     private static final String IDENTITY = "joe bloggs";
 
@@ -101,6 +101,8 @@ public class EndToEndTest extends APITestBase
         }
     }
     
+    private static final Object FOO = new Object();
+    
     public void testPubSubDifferentWebsockets() throws Exception
     {
         final int numPublishers = 3;
@@ -125,7 +127,7 @@ public class EndToEndTest extends APITestBase
                 publishers[i] = createConnection(url);
                 publishers[i].connect(ticket);
             }
-            final Set<String> msgs = new HashSet<String>();
+            final Map<String, Object> msgs = new ConcurrentHashMap<String, Object>();
             final CountDownLatch[] latches = new CountDownLatch[numSubscribers];
             for (int i = 0; i < numSubscribers; i++)
             {
@@ -166,7 +168,7 @@ public class EndToEndTest extends APITestBase
                 for (int j = 0; j < numMessages; j++)
                 {
                     String msg = "this is a message " + i + "-" + j;
-                    msgs.add(msg);
+                    msgs.put(msg, FOO);
                     Message m = new Message("ch-pub");
                     m.setMessage(msg);
                     publishers[i].send(m);
@@ -339,30 +341,93 @@ public class EndToEndTest extends APITestBase
              }
          }
      }
+     
+     public void testPushPull() throws Exception
+     {
+         Endpoint pushEndpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+                                    .buildEndpoint("push-endpoint-0");
+         pushEndpoint.putChannelDefinition("ch-push", ChannelType.PUSH,
+                                       "queue2");
+         pushEndpoint = api.createEndpoint(pushEndpoint);
+         String urlPush = pushEndpoint.getProtocolURLMap().get("websockets");
+         String ticketPush = genTicket("push-endpoint-0");
+         
+         Endpoint pullEndpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+                     .buildEndpoint("pull-endpoint-0");
+         pullEndpoint.putChannelDefinition("ch-pull", ChannelType.PULL,
+                                           "queue2");
+         pullEndpoint = api.createEndpoint(pullEndpoint);
+         String urlPull = pullEndpoint.getProtocolURLMap().get("websockets");
+         String ticketPull = genTicket("pull-endpoint-0");
+         
+         final int numPushers = 3;         
+         final int numPullers = 10;
+         
+         Connection[] pushers = new Connection[numPushers];
+         Connection[] pullers = new Connection[numPullers];
+         
+         for (int i = 0; i < numPushers; i++)
+         {
+             pushers[i] = createConnection(urlPush);
+             pushers[i].connect(ticketPush);
+         }
+         
+         for (int i = 0; i < numPullers; i++)
+         {
+             pullers[i] = createConnection(urlPull);
+             pullers[i].connect(ticketPull);
+         }
+         
+         testPushPull(pushers, pullers);
+     }
     
-//     private void testPushPull(final Connection[] pushers, final Connection[] pullers)
-//     {
-//         final int numMessages = 100;
-//        
-//         for (int i = 0; i < pushers.length; i++)
-//         {
-//             for (int j = 0; j < numMessages; j++)
-//             {
-//                 String msg = "this is a message" + i + "-" + j;
-//                 Message sent = new Message("ch-push");
-//                 sent.setMessage(msg);
-//                 pushers[i].send(sent);
-//                
-//                 Message rec = new Message();
-//                 String str = ws.recv();
-//                 assertNotNull(str);
-//                 rec.fromJSON(str);
-//                 assertEquals(msg, rec.getMessage());
-//                 assertEquals("ch-pull", rec.getChannelName());
-//                 assertEquals(IDENTITY, rec.getIdentity());
-//             }
-//         }
-//    }
+     private void testPushPull(final Connection[] pushers, final Connection[] pullers)
+         throws Exception
+     {
+         final int numMessages = 100;
+         
+         final CountDownLatch l = new CountDownLatch(pushers.length * numMessages);
+         
+         final Map<String, Object> msgs = new ConcurrentHashMap<String, Object>(); 
+         
+         for (int i = 0; i < pullers.length; i++)
+         {
+             pullers[i].setChannelListener("ch-pull",
+                 new ChannelListener()
+                 {                                          
+                     public void onMessage(final Message msg)
+                     {
+                         msgs.remove(msg.getMessage());
+                         addToAssertsList(new Runnable()
+                         {
+                             public void run()
+                             {                                              
+                                 assertEquals(IDENTITY, msg.getIdentity());
+                                 assertEquals("ch-pull", msg.getChannelName());
+                                 assertNull(msg.getReply());
+                             }
+                         });
+                         l.countDown();
+                     }
+                 });
+         }
+        
+         for (int i = 0; i < pushers.length; i++)
+         {
+             for (int j = 0; j < numMessages; j++)
+             {
+                 String msg = "this is a message" + i + "-" + j;
+                 msgs.put(msg, FOO);
+                 Message sent = new Message("ch-push");
+                 sent.setMessage(msg);
+                 pushers[i].send(sent);                
+             }
+         }
+         
+         assertTrue(l.await(5, TimeUnit.SECONDS));
+         assertTrue(msgs.isEmpty());
+         runAsserts();
+    }
     
     private void testReqRep(final Connection connReq, final Connection connRep)
             throws Exception
@@ -459,4 +524,6 @@ public class EndToEndTest extends APITestBase
 
         asserts.clear();
     }
+    
+    
 }
