@@ -8,44 +8,12 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 
 /**
- * 
+ *
  * @author tfox
- * 
+ *
  */
 public class Message
 {
-    public void fromJSON(final String json) throws IOException
-    {
-        JsonFactory factory = new JsonFactory();
-        JsonParser jp = factory.createJsonParser(new StringReader(json));
-        jp.nextToken();
-        while (jp.nextToken() != JsonToken.END_OBJECT)
-        {
-            String fieldName = jp.getCurrentName();
-
-            if ("channel".equals(fieldName))
-            {
-                jp.nextToken();
-                channel = jp.getText();
-            }
-            else if ("reply".equals(fieldName))
-            {
-                jp.nextToken();
-                reply = jp.getText();
-            }
-            else if ("identity".equals(fieldName))
-            {
-                jp.nextToken();
-                identity = jp.getText();
-            }
-            else if ("message".equals(fieldName))
-            {
-                jp.nextToken();
-                message = jp.getText();
-            }
-        }
-    }
-
     public Message()
     {
     }
@@ -117,7 +85,39 @@ public class Message
             buff.append(",\"reply\":\"").append(reply).append("\"");
         }
         buff.append('}');
-        // System.out.println("json is:" + buff.toString());
         return buff.toString();
     }
+
+    public void fromJSON(final String json) throws IOException
+    {
+        JsonFactory factory = new JsonFactory();
+        JsonParser jp = factory.createJsonParser(new StringReader(json));
+        jp.nextToken();
+        while (jp.nextToken() != JsonToken.END_OBJECT)
+        {
+            String fieldName = jp.getCurrentName();
+
+            if ("channel".equals(fieldName))
+            {
+                jp.nextToken();
+                channel = jp.getText();
+            }
+            else if ("reply".equals(fieldName))
+            {
+                jp.nextToken();
+                reply = jp.getText();
+            }
+            else if ("identity".equals(fieldName))
+            {
+                jp.nextToken();
+                identity = jp.getText();
+            }
+            else if ("message".equals(fieldName))
+            {
+                jp.nextToken();
+                message = jp.getText();
+            }
+        }
+    }
+
 }

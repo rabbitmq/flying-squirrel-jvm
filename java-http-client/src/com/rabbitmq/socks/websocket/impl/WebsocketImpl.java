@@ -1,7 +1,7 @@
 /**
- * 
+ *
  * Original based on file with following licence, but hacked since then:
- * 
+ *
  * The MIT License
  *
  * Copyright (c) 2009 Adam MacBeth
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -46,18 +46,18 @@ import com.rabbitmq.socks.api.WebsocketListener;
 import com.rabbitmq.socks.websocket.Websocket;
 
 /**
- * 
+ *
  * @author tfox
- * 
+ *
  *         Originally based on file from
  *         https://github.com/adamac/Java-WebSocket-client
- * 
+ *
  *         Which was released with the following licence:
- * 
+ *
  *         The MIT License
- * 
+ *
  *         Copyright (c) 2009 Adam MacBeth
- * 
+ *
  *         Permission is hereby granted, free of charge, to any person obtaining
  *         a copy of this software and associated documentation files (the
  *         "Software"), to deal in the Software without restriction, including
@@ -65,10 +65,10 @@ import com.rabbitmq.socks.websocket.Websocket;
  *         distribute, sublicense, and/or sell copies of the Software, and to
  *         permit persons to whom the Software is furnished to do so, subject to
  *         the following conditions:
- * 
+ *
  *         The above copyright notice and this permission notice shall be
  *         included in all copies or substantial portions of the Software.
- * 
+ *
  *         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  *         EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  *         MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -158,9 +158,9 @@ public class WebsocketImpl implements Websocket
             }
         }
         String request = "GET " + path + " HTTP/1.1\r\n"
-        + "Upgrade: WebSocket\r\n" + "Connection: Upgrade\r\n"
-        + "Host: " + host + "\r\n" + "Origin: " + origin
-        + "\r\n" + extraHeaders.toString() + "\r\n";
+                        + "Upgrade: WebSocket\r\n" + "Connection: Upgrade\r\n"
+                        + "Host: " + host + "\r\n" + "Origin: " + origin
+                        + "\r\n" + extraHeaders.toString() + "\r\n";
         outputStream.write(request.getBytes());
         outputStream.flush();
         inputStream = new BufferedInputStream(socket.getInputStream());
@@ -264,8 +264,11 @@ public class WebsocketImpl implements Websocket
                     }
                     catch (IOException e)
                     {
-                        System.err.println("Failed to receive message "
-                                        + e.getMessage());
+                        if (!closed)
+                        {
+                            System.err.println("Failed to receive message "
+                                            + e.getMessage());
+                        }
                     }
                 }
             }
