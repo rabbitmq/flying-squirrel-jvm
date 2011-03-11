@@ -22,8 +22,7 @@ public abstract class APITestBase extends TestCase
 
     protected void deleteAllEndpoints() throws Exception
     {
-        RabbitSocksAPI api = RabbitSocksAPIFactory
-        .getClient("localhost", 55672);
+        RabbitSocksAPI api = RabbitSocksAPIFactory.getClient("localhost", 55672);
 
         List<String> endpointNames = api.listEndpointNames();
 
