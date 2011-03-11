@@ -13,9 +13,9 @@ import com.rabbitmq.socks.client.api.Connection;
 import com.rabbitmq.socks.client.api.ConnectionImpl;
 
 /**
- * 
+ *
  * @author tfox
- * 
+ *
  */
 public abstract class APITestBase extends TestCase
 {
@@ -40,6 +40,7 @@ public abstract class APITestBase extends TestCase
 
     protected Connection createConnection(final String url) throws Exception
     {
+        System.out.println("create connection " + url);
         URI uri = new URI(url);
         Connection connection = new ConnectionImpl(uri,
                         Executors.newSingleThreadExecutor());

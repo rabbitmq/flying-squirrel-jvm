@@ -17,9 +17,9 @@ import com.rabbitmq.socks.client.api.Connection;
 import com.rabbitmq.socks.client.api.Message;
 
 /**
- * 
+ *
  * @author tfox
- * 
+ *
  */
 public class EndToEndTest extends APITestBase
 {
@@ -27,6 +27,8 @@ public class EndToEndTest extends APITestBase
 
     private static final String IDENTITY = "joe bloggs";
     private static final Object FOO = new Object();
+
+    private final List<Runnable> asserts = new ArrayList<Runnable>();
 
     @Override
     protected void setUp() throws Exception
@@ -417,7 +419,6 @@ public class EndToEndTest extends APITestBase
                 }
             });
         }
-
         for (int i = 0; i < pushers.length; i++)
         {
             for (int j = 0; j < numMessages; j++)
@@ -429,14 +430,13 @@ public class EndToEndTest extends APITestBase
                 pushers[i].send(sent);
             }
         }
-
         assertTrue(l.await(5, TimeUnit.SECONDS));
         assertTrue(msgs.isEmpty());
         runAsserts();
     }
 
     private void testReqRep(final Connection connReq, final Connection connRep)
-    throws Exception
+        throws Exception
     {
         final int numMessages = 10;
         connRep.setChannelListener("ch-rep", new ChannelListener()
@@ -512,8 +512,6 @@ public class EndToEndTest extends APITestBase
         runAsserts();
     }
 
-    private final List<Runnable> asserts = new ArrayList<Runnable>();
-
     private synchronized void addToAssertsList(Runnable runnable)
     {
         asserts.add(runnable);
@@ -531,7 +529,6 @@ public class EndToEndTest extends APITestBase
         {
             ass.run();
         }
-
         asserts.clear();
     }
 

@@ -16,9 +16,9 @@ import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
 import com.rabbitmq.socks.client.api.Connection;
 
 /**
- * 
+ *
  * @author tfox
- * 
+ *
  */
 public class RabbitSocksAPITest extends APITestBase
 {
@@ -210,7 +210,7 @@ public class RabbitSocksAPITest extends APITestBase
     public void testGetEndpoint() throws Exception
     {
         RabbitSocksAPI api = RabbitSocksAPIFactory
-        .getClient("localhost", 55672);
+            .getClient("localhost", 55672);
         final int count = 10;
         Endpoint[] endpoints = createEndpoints(api, count);
         for (int i = 0; i < count; i++)
@@ -315,7 +315,7 @@ public class RabbitSocksAPITest extends APITestBase
         Endpoint endpoint = genEndpoint(endpointName, 10);
         endpoint = api.createEndpoint(endpoint);
         List<ConnectionInfo> connInfos = api
-        .listConnectionsForEndpoint(endpointName);
+            .listConnectionsForEndpoint(endpointName);
         assertTrue(connInfos.isEmpty());
         String url = endpoint.getProtocolURLMap().get("websockets");
         assertNotNull(url);

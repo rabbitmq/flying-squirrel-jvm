@@ -8,9 +8,9 @@ import com.rabbitmq.socks.api.ChannelType;
 import com.rabbitmq.socks.api.Endpoint;
 
 /**
- * 
+ *
  * @author tfox
- * 
+ *
  */
 public class EndpointImpl implements Endpoint
 {
@@ -64,7 +64,6 @@ public class EndpointImpl implements Endpoint
     {
         channelDefs.put(channelName, new ChannelDefinitionImpl(channelType,
                         resource));
-
         return this;
     }
 
@@ -72,7 +71,6 @@ public class EndpointImpl implements Endpoint
     public Endpoint putProtocolURL(final String protocolName, final String url)
     {
         urlMap.put(protocolName, url);
-
         return this;
     }
 
