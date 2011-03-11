@@ -15,12 +15,9 @@ import com.rabbitmq.socks.api.Endpoint;
 public class EndpointImpl implements Endpoint
 {
     private final String name;
-
     private String key;
-
     private final Map<String, ChannelDefinition> channelDefs =
         new LinkedHashMap<String, ChannelDefinition>();
-
     private final Map<String, String> urlMap = new LinkedHashMap<String, String>();
 
     @Override

@@ -39,9 +39,10 @@ public class RabbitSocksAPIImpl implements RabbitSocksAPI
     private static final String PUT_METHOD = "PUT";
     private static final String DELETE_METHOD = "DELETE";
 
-    public RabbitSocksAPIImpl(final String host, final int port)
+    public RabbitSocksAPIImpl(final String host, final int port, final String prefix)
     {
-        endpointURL = "http://" + host + ":" + port + "/socks-api/endpoints/";
+        endpointURL =
+            "http://" + host + ":" + port + "/" + prefix + "/endpoints/";
     }
 
     @Override

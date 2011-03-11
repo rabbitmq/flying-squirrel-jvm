@@ -55,15 +55,14 @@ public class EndToEndTest extends APITestBase
         try
         {
             Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
-            .buildEndpoint("pub-sub-endpoint-0");
+                                                     .buildEndpoint("pub-sub-endpoint-0");
             endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
             endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
             endpoint = api.createEndpoint(endpoint);
             String url = endpoint.getProtocolURLMap().get("websockets");
             assertNotNull(url);
             String ticket = genTicket("pub-sub-endpoint-0");
-            conn = createConnection(url);
-            conn.connect(ticket);
+            conn = createConnection(url, ticket);
             final int numMessages = 100;
             final CountDownLatch latch = new CountDownLatch(numMessages);
             conn.setChannelListener("ch-sub", new ChannelListener()
@@ -118,7 +117,7 @@ public class EndToEndTest extends APITestBase
         try
         {
             Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
-            .buildEndpoint("pub-sub-endpoint-0");
+                                                     .buildEndpoint("pub-sub-endpoint-0");
             endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
             endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
             endpoint = api.createEndpoint(endpoint);
@@ -130,19 +129,17 @@ public class EndToEndTest extends APITestBase
             final int numMessages = 10;
             for (int i = 0; i < numPublishers; i++)
             {
-                publishers[i] = createConnection(url);
-                publishers[i].connect(ticket);
+                publishers[i] = createConnection(url, ticket);
             }
             final Map<String, Object> msgs = new ConcurrentHashMap<String, Object>();
             final CountDownLatch[] latches = new CountDownLatch[numSubscribers];
             for (int i = 0; i < numSubscribers; i++)
             {
-                subscribers[i] = createConnection(url);
-                subscribers[i].connect(ticket);
+                subscribers[i] = createConnection(url, ticket);
                 latches[i] = new CountDownLatch(numMessages * numPublishers);
                 final CountDownLatch l = latches[i];
                 subscribers[i].setChannelListener("ch-sub",
-                                new ChannelListener()
+                                                  new ChannelListener()
                 {
                     volatile int count;
 
@@ -156,7 +153,7 @@ public class EndToEndTest extends APITestBase
                             {
                                 msgs.remove(msg.getMessage());
                                 assertEquals(IDENTITY, msg
-                                                .getIdentity());
+                                                          .getIdentity());
                                 assertEquals("ch-sub",
                                                 msg.getChannelName());
                                 assertNull(msg.getReply());
@@ -220,20 +217,19 @@ public class EndToEndTest extends APITestBase
         try
         {
             Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
-            .buildEndpoint("req-rep-endpoint-0");
+                                                     .buildEndpoint("req-rep-endpoint-0");
             endpoint.putChannelDefinition("ch-req", ChannelType.REQ,
-            "conversation-0");
+                                          "conversation-0");
             endpoint.putChannelDefinition("ch-rep", ChannelType.REP,
-            "conversation-0");
+                                          "conversation-0");
             endpoint = api.createEndpoint(endpoint);
             String url = endpoint.getProtocolURLMap().get("websockets");
             assertNotNull(url);
             String ticket = genTicket("req-rep-endpoint-0");
-            conn = createConnection(url);
-            conn.connect(ticket);
-
+            conn = createConnection(url, ticket);
+            //FIXME - need to sleep for now, until synchronous connection
+            //handshake is in place
             Thread.sleep(2000);
-
             testReqRep(conn, conn);
         }
         finally
@@ -246,36 +242,34 @@ public class EndToEndTest extends APITestBase
     }
 
     public void testReqRepDifferentWebsocketsDifferentEndpoints()
-    throws Exception
+        throws Exception
     {
         Connection connReq = null;
         Connection connRep = null;
         try
         {
             Endpoint endpointReq = RabbitSocksAPIFactory.getEndpointBuilder()
-            .buildEndpoint("req-endpoint-0");
+                                                        .buildEndpoint("req-endpoint-0");
             endpointReq.putChannelDefinition("ch-req", ChannelType.REQ,
-            "conversation-1");
+                                             "conversation-1");
             endpointReq = api.createEndpoint(endpointReq);
             String urlReq = endpointReq.getProtocolURLMap().get("websockets");
             String ticketReq = api.generateTicket(endpointReq.getName(),
-                            IDENTITY, 1000);
+                                                  IDENTITY, 1000);
 
             Endpoint endpointRep = RabbitSocksAPIFactory.getEndpointBuilder()
-            .buildEndpoint("rep-endpoint-0");
+                                                        .buildEndpoint("rep-endpoint-0");
             endpointRep.putChannelDefinition("ch-rep", ChannelType.REP,
-            "conversation-1");
+                                             "conversation-1");
             endpointRep = api.createEndpoint(endpointRep);
             String urlRep = endpointRep.getProtocolURLMap().get("websockets");
             String ticketRep = api.generateTicket(endpointRep.getName(),
-                            IDENTITY, 1000);
-            connReq = createConnection(urlReq);
-            connReq.connect(ticketReq);
-            connRep = createConnection(urlRep);
-            connRep.connect(ticketRep);
+                                                  IDENTITY, 1000);
+            connReq = createConnection(urlReq, ticketReq);
+            connRep = createConnection(urlRep, ticketRep);
             // FIXME - this sleep is currently necessary since the connection
             // setup (ticket sending) "handshake" is currently async, this will
-            // be
+            // be fixed soon
             Thread.sleep(2000);
             testReqRep(connReq, connRep);
         }
@@ -298,14 +292,13 @@ public class EndToEndTest extends APITestBase
         try
         {
             Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
-            .buildEndpoint("push-pull-endpoint-0");
+                                                     .buildEndpoint("push-pull-endpoint-0");
             endpoint.putChannelDefinition("ch-push", ChannelType.PUSH, "queue1");
             endpoint.putChannelDefinition("ch-pull", ChannelType.PULL, "queue1");
             endpoint = api.createEndpoint(endpoint);
             String url = endpoint.getProtocolURLMap().get("websockets");
             String ticket = genTicket("push-pull-endpoint-0");
-            conn = createConnection(url);
-            conn.connect(ticket);
+            conn = createConnection(url, ticket);
             final int numMessages = 100;
             final CountDownLatch l = new CountDownLatch(numMessages);
             conn.setChannelListener("ch-pull", new ChannelListener()
@@ -354,49 +347,105 @@ public class EndToEndTest extends APITestBase
     public void testPushPull() throws Exception
     {
         Endpoint pushEndpoint = RabbitSocksAPIFactory.getEndpointBuilder()
-        .buildEndpoint("push-endpoint-0");
+                                                     .buildEndpoint("push-endpoint-0");
         pushEndpoint.putChannelDefinition("ch-push", ChannelType.PUSH, "queue2");
         pushEndpoint = api.createEndpoint(pushEndpoint);
         String urlPush = pushEndpoint.getProtocolURLMap().get("websockets");
         String ticketPush = genTicket("push-endpoint-0");
-
         Endpoint pullEndpoint = RabbitSocksAPIFactory.getEndpointBuilder()
-        .buildEndpoint("pull-endpoint-0");
+                                                     .buildEndpoint("pull-endpoint-0");
         pullEndpoint.putChannelDefinition("ch-pull", ChannelType.PULL, "queue2");
         pullEndpoint = api.createEndpoint(pullEndpoint);
         String urlPull = pullEndpoint.getProtocolURLMap().get("websockets");
         String ticketPull = genTicket("pull-endpoint-0");
-
         final int numPushers = 3;
         final int numPullers = 10;
-
         Connection[] pushers = new Connection[numPushers];
         Connection[] pullers = new Connection[numPullers];
-
         for (int i = 0; i < numPushers; i++)
         {
-            pushers[i] = createConnection(urlPush);
-            pushers[i].connect(ticketPush);
+            pushers[i] = createConnection(urlPush, ticketPush);
         }
-
         for (int i = 0; i < numPullers; i++)
         {
-            pullers[i] = createConnection(urlPull);
-            pullers[i].connect(ticketPull);
+            pullers[i] = createConnection(urlPull, ticketPull);
         }
 
         testPushPull(pushers, pullers);
     }
 
-    private void testPushPull(final Connection[] pushers, final Connection[] pullers) throws Exception
+    public void testInvalidTicket() throws Exception
+    {
+        testInvalidTicket(false);
+    }
+
+    public void testExpiredTicket() throws Exception
+    {
+        testInvalidTicket(true);
+    }
+
+    private void testInvalidTicket(boolean expired) throws Exception
+    {
+        Connection conn = null;
+        try
+        {
+            Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+                                                     .buildEndpoint("pub-sub-endpoint-0");
+            endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
+            endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
+            endpoint = api.createEndpoint(endpoint);
+            String url = endpoint.getProtocolURLMap().get("websockets");
+            String ticket;
+            if (expired)
+            {
+                ticket = api.generateTicket(endpoint.getName(), IDENTITY, 0);
+            }
+            else
+            {
+                ticket = "invalid-ticket";
+            }
+            assertNotNull(url);
+            conn = createConnection(url, ticket);
+            final CountDownLatch latch = new CountDownLatch(1);
+            conn.setChannelListener("ch-sub", new ChannelListener()
+            {
+                @Override
+                public void onMessage(final Message msg)
+                {
+                    latch.countDown();
+                }
+            });
+            Message m = new Message("ch-pub");
+            m.setMessage("this is a message");
+            conn.send(m);
+            //Make sure message *doesn't* arrive
+            assertFalse(latch.await(1, TimeUnit.SECONDS));
+            runAsserts();
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                try
+                {
+                    conn.close();
+                }
+                catch (Exception ignore)
+                {
+                    //Close might fail since server might close connection
+                    //if ticket invalid
+                }
+            }
+        }
+    }
+
+    private void testPushPull(final Connection[] pushers,
+                              final Connection[] pullers) throws Exception
     {
         final int numMessages = 100;
-
         final CountDownLatch l = new CountDownLatch(pushers.length
-                        * numMessages);
-
+                                                    * numMessages);
         final Map<String, Object> msgs = new ConcurrentHashMap<String, Object>();
-
         for (int i = 0; i < pullers.length; i++)
         {
             pullers[i].setChannelListener("ch-pull", new ChannelListener()
@@ -442,7 +491,6 @@ public class EndToEndTest extends APITestBase
         connRep.setChannelListener("ch-rep", new ChannelListener()
         {
             volatile int count;
-
             @Override
             public void onMessage(final Message msg)
             {
@@ -479,7 +527,6 @@ public class EndToEndTest extends APITestBase
         connReq.setChannelListener("ch-req", new ChannelListener()
         {
             volatile int count;
-
             @Override
             public void onMessage(final Message msg)
             {

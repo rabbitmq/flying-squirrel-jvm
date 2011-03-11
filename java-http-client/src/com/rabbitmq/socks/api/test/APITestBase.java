@@ -22,7 +22,7 @@ public abstract class APITestBase extends TestCase
 
     protected void deleteAllEndpoints() throws Exception
     {
-        RabbitSocksAPI api = RabbitSocksAPIFactory.getClient("localhost", 55672);
+        RabbitSocksAPI api = getAPI();
 
         List<String> endpointNames = api.listEndpointNames();
 
@@ -34,14 +34,16 @@ public abstract class APITestBase extends TestCase
 
     protected RabbitSocksAPI getAPI()
     {
-        return RabbitSocksAPIFactory.getClient("localhost", 55672);
+        return RabbitSocksAPIFactory.getClient("localhost", 55672, "socks-api");
     }
 
-    protected Connection createConnection(final String url) throws Exception
+    protected Connection createConnection(final String url, final String ticket)
+        throws Exception
     {
         URI uri = new URI(url);
         Connection connection = new ConnectionImpl(uri,
                         Executors.newSingleThreadExecutor());
+        connection.connect(ticket);
         return connection;
     }
 

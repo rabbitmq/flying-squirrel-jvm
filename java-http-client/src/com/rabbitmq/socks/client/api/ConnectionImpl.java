@@ -11,9 +11,9 @@ import com.rabbitmq.socks.websocket.Websocket;
 import com.rabbitmq.socks.websocket.impl.WebsocketImpl;
 
 /**
- * 
+ *
  * @author tfox
- * 
+ *
  */
 public class ConnectionImpl implements Connection, WebsocketListener
 {
@@ -60,7 +60,6 @@ public class ConnectionImpl implements Connection, WebsocketListener
         {
             msg.fromJSON(json);
             ChannelListener listener = listeners.get(msg.getChannelName());
-
             if (listener != null)
             {
                 listener.onMessage(msg);

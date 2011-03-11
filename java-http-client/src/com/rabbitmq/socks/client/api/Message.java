@@ -24,11 +24,8 @@ public class Message
     }
 
     private String channel;
-
     private String reply;
-
     private String identity;
-
     private String message;
 
     public String getReply()

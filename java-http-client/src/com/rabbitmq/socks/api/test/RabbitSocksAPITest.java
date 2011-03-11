@@ -99,9 +99,7 @@ public class RabbitSocksAPITest extends APITestBase
         }
         // Get the endpoint and assert it's the same as the one we created
         endpoint_ret = api.getEndpoint(endpointName);
-
         assertEndpoint(endpoint1, endpoint_ret);
-
         try
         {
             api.createEndpoint(null);
@@ -110,7 +108,6 @@ public class RabbitSocksAPITest extends APITestBase
         catch (IllegalArgumentException e)
         {
         }
-
         try
         {
             Endpoint endpointNullName = RabbitSocksAPIFactory
@@ -177,7 +174,6 @@ public class RabbitSocksAPITest extends APITestBase
             }
             assertTrue(names.isEmpty());
         }
-
         try
         {
             api.deleteEndpoint(null);
@@ -195,7 +191,6 @@ public class RabbitSocksAPITest extends APITestBase
         catch (IllegalArgumentException e)
         {
         }
-
         try
         {
             api.deleteEndpoint("does-not-exist");
@@ -209,8 +204,9 @@ public class RabbitSocksAPITest extends APITestBase
 
     public void testGetEndpoint() throws Exception
     {
-        RabbitSocksAPI api = RabbitSocksAPIFactory
-            .getClient("localhost", 55672);
+        RabbitSocksAPI api = RabbitSocksAPIFactory.getClient("localhost",
+                                                             55672,
+                                                             "socks-api");
         final int count = 10;
         Endpoint[] endpoints = createEndpoints(api, count);
         for (int i = 0; i < count; i++)
@@ -324,8 +320,7 @@ public class RabbitSocksAPITest extends APITestBase
         Connection[] conns = new Connection[numConns];
         for (int i = 0; i < numConns; i++)
         {
-            conns[i] = createConnection(url);
-            conns[i].connect(ticket);
+            conns[i] = createConnection(url, ticket);
         }
         waitForConnections(api, endpointName, numConns);
         connInfos = api.listConnectionsForEndpoint(endpointName);
