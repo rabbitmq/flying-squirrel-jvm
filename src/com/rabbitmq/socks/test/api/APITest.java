@@ -1,4 +1,4 @@
-package com.rabbitmq.socks.api.test;
+package com.rabbitmq.socks.test.api;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,13 +16,14 @@ import com.rabbitmq.socks.api.RabbitSocksAPI;
 import com.rabbitmq.socks.api.RabbitSocksAPIException;
 import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
 import com.rabbitmq.socks.client.api.Connection;
+import com.rabbitmq.socks.test.APITestBase;
 
 /**
  *
  * @author tfox
  *
  */
-public class RabbitSocksAPITest extends APITestBase
+public class APITest extends APITestBase
 {
     @Override
     protected void setUp() throws Exception

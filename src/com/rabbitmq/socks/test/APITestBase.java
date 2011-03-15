@@ -1,4 +1,4 @@
-package com.rabbitmq.socks.api.test;
+package com.rabbitmq.socks.test;
 
 import java.net.URI;
 import java.util.List;

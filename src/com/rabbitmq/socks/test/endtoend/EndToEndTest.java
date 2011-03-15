@@ -1,4 +1,4 @@
-package com.rabbitmq.socks.api.test;
+package com.rabbitmq.socks.test.endtoend;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,6 +15,7 @@ import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
 import com.rabbitmq.socks.client.api.ChannelListener;
 import com.rabbitmq.socks.client.api.Connection;
 import com.rabbitmq.socks.client.api.Message;
+import com.rabbitmq.socks.test.APITestBase;
 import com.rabbitmq.socks.websocket.impl.WebsocketImpl;
 
 /**
