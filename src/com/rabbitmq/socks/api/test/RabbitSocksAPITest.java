@@ -28,7 +28,6 @@ public class RabbitSocksAPITest extends APITestBase
     protected void setUp() throws Exception
     {
         super.setUp();
-
         this.deleteAllEndpoints();
     }
 
@@ -437,37 +436,6 @@ public class RabbitSocksAPITest extends APITestBase
         assertNotNull(endpoint2.getKey());
         String url = endpoint2.getProtocols().get("websockets");
         assertNotNull(url);
-    }
-
-    /*
-     * Waiting for connections after sending a ticket will take an indeterminate
-     * amount of time, so we retry in a loop and time out
-     */
-    private void waitForConnections(final RabbitSocksAPI api,
-                    final String endpointName, final int count)
-        throws Exception
-    {
-        final long timeout = 5000;
-        long start = System.currentTimeMillis();
-        do
-        {
-            List<ConnectionInfo> conns;
-            if (endpointName != null)
-            {
-                conns = api.listConnectionsForEndpoint(endpointName);
-            }
-            else
-            {
-                conns = api.listConnections();
-            }
-            if (conns.size() == count)
-            {
-                return;
-            }
-            Thread.sleep(10);
-        }
-        while (System.currentTimeMillis() - start < timeout);
-        fail("Timedout waiting for connections " + count);
     }
 
     private void assertSameChannelMaps(

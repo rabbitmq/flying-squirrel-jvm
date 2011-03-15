@@ -1,4 +1,4 @@
-package com.rabbitmq.socks.client.api;
+package com.rabbitmq.socks.client.api.impl;
 
 import java.io.IOException;
 import java.net.URI;
@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
+import com.rabbitmq.socks.client.api.ChannelListener;
+import com.rabbitmq.socks.client.api.Connection;
+import com.rabbitmq.socks.client.api.Message;
 import com.rabbitmq.socks.websocket.Websocket;
 import com.rabbitmq.socks.websocket.WebsocketListener;
 import com.rabbitmq.socks.websocket.impl.WebsocketImpl;

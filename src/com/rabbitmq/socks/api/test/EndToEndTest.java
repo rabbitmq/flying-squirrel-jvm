@@ -15,6 +15,7 @@ import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
 import com.rabbitmq.socks.client.api.ChannelListener;
 import com.rabbitmq.socks.client.api.Connection;
 import com.rabbitmq.socks.client.api.Message;
+import com.rabbitmq.socks.websocket.impl.WebsocketImpl;
 
 /**
  *
@@ -41,6 +42,7 @@ public class EndToEndTest extends APITestBase
     @Override
     protected void tearDown() throws Exception
     {
+    	waitForConnections(api, null, 0);
         super.tearDown();
     }
 
@@ -372,6 +374,56 @@ public class EndToEndTest extends APITestBase
         }
 
         testPushPull(pushers, pullers);
+
+        for (int i = 0; i < numPushers; i++)
+        {
+            pushers[i].close();
+        }
+        for (int i = 0; i < numPullers; i++)
+        {
+            pullers[i].close();
+        }
+    }
+
+//    public void testHardCloseConnections() throws Exception
+//    {
+//    	testCloseConnections(true);
+//    }
+
+    public void testCloseConnections() throws Exception
+    {
+    	testCloseConnections(false);
+    }
+
+    //Make sure connections are closed on server when closed from client
+    private void testCloseConnections(boolean hardClose) throws Exception
+    {
+    	EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+    		.buildEndpoint("endpoint-x");
+    	endpoint.putChannelDefinition("ch-push", ChannelType.PUSH, "queue2");
+    	endpoint = api.createEndpoint(endpoint);
+    	String url = endpoint.getProtocols().get("websockets");
+        String ticket = genTicket("endpoint-x");
+        final int numConnections = 10;
+        Connection[] conns = new Connection[numConnections];
+        for (int i = 0; i < numConnections; i++)
+        {
+        	conns[i] = createConnection(url, ticket);
+        }
+        waitForConnections(api, "endpoint-x", numConnections);
+        WebsocketImpl.HARD_CLOSE = hardClose;
+        try
+        {
+	        for (int i = 0; i < numConnections; i++)
+	        {
+	        	conns[i].close();
+	        }
+	        waitForConnections(api, "endpoint-x", 0);
+        }
+        finally
+        {
+        	WebsocketImpl.HARD_CLOSE = false;
+        }
     }
 
     public void testInvalidTicket() throws Exception

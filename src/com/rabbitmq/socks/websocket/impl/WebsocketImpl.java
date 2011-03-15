@@ -201,13 +201,19 @@ public class WebsocketImpl implements Websocket
         outputStream.flush();
     }
 
+    //Hack so we can test hard closing in tests - some browsers do this!
+    public static volatile boolean HARD_CLOSE = false;
+
     @Override
     public synchronized void close() throws IOException
     {
         closed = true;
-        outputStream.write(0xff);
-        outputStream.write(0x00);
-        outputStream.flush();
+        if (!HARD_CLOSE)
+        {
+        	outputStream.write(0xFF);
+        	outputStream.write(0x0);
+        	outputStream.flush();
+        }
         inputStream.close();
         outputStream.close();
         socket.close();
