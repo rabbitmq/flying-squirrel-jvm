@@ -408,7 +408,7 @@ public class RabbitSocksAPITest extends APITestBase
             ai.incrementAndGet();
             assertNotNull(conn.getConnectionName());
             // FIXME - assert this properly when it is fixed
-            // assertEquals("websockets", info.getProtocol());
+            //assertEquals("websockets", conn.getProtocol());
         }
         for (AtomicInteger ai: connCounts.values())
         {
