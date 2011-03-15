@@ -386,10 +386,10 @@ public class EndToEndTest extends APITestBase
         }
     }
 
-//    public void testHardCloseConnections() throws Exception
-//    {
-//    	testCloseConnections(true);
-//    }
+    public void testHardCloseConnections() throws Exception
+    {
+    	testCloseConnections(true);
+    }
 
     public void testCloseConnections() throws Exception
     {
