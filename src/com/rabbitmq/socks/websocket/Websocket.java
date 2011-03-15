@@ -2,7 +2,6 @@ package com.rabbitmq.socks.websocket;
 
 import java.io.IOException;
 
-import com.rabbitmq.socks.api.WebsocketListener;
 
 public interface Websocket
 {

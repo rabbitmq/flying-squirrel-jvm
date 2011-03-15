@@ -42,8 +42,8 @@ import java.util.concurrent.Executor;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 
-import com.rabbitmq.socks.api.WebsocketListener;
 import com.rabbitmq.socks.websocket.Websocket;
+import com.rabbitmq.socks.websocket.WebsocketListener;
 
 /**
  *

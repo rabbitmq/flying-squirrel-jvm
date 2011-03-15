@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
-import com.rabbitmq.socks.api.WebsocketListener;
 import com.rabbitmq.socks.websocket.Websocket;
+import com.rabbitmq.socks.websocket.WebsocketListener;
 import com.rabbitmq.socks.websocket.impl.WebsocketImpl;
 
 /**
@@ -32,7 +32,8 @@ public class ConnectionImpl implements Connection, WebsocketListener
         ws.send(ticket);
     }
 
-    private final Map<String, ChannelListener> listeners = new ConcurrentHashMap<String, ChannelListener>();
+    private final Map<String, ChannelListener> listeners =
+    	new ConcurrentHashMap<String, ChannelListener>();
 
     @Override
     public void setChannelListener(String channelName, ChannelListener listener)

@@ -1,4 +1,4 @@
-package com.rabbitmq.socks.api;
+package com.rabbitmq.socks.websocket;
 
 public interface WebsocketListener
 {

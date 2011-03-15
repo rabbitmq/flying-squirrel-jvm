@@ -11,9 +11,11 @@ import com.rabbitmq.socks.api.impl.RabbitSocksAPIImpl;
 public class RabbitSocksAPIFactory
 {
     public static RabbitSocksAPI getClient(String hostName, int port,
-                                           String prefix)
+                                           String prefix, String username,
+                                           String password)
     {
-        return new RabbitSocksAPIImpl(hostName, port, prefix);
+        return new RabbitSocksAPIImpl(hostName, port, prefix,
+                                      username, password);
     }
 
     public static EndpointBuilder getEndpointBuilder()

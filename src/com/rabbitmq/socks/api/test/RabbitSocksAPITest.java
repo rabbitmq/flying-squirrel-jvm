@@ -1,15 +1,17 @@
 package com.rabbitmq.socks.api.test;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.rabbitmq.socks.api.ChannelDefinition;
 import com.rabbitmq.socks.api.ChannelType;
 import com.rabbitmq.socks.api.ConnectionInfo;
-import com.rabbitmq.socks.api.Endpoint;
 import com.rabbitmq.socks.api.EndpointBuilder;
+import com.rabbitmq.socks.api.EndpointInfo;
 import com.rabbitmq.socks.api.RabbitSocksAPI;
 import com.rabbitmq.socks.api.RabbitSocksAPIException;
 import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
@@ -40,12 +42,13 @@ public class RabbitSocksAPITest extends APITestBase
     {
         EndpointBuilder builder = RabbitSocksAPIFactory.getEndpointBuilder();
         final String endpointName = "my-endpoint";
-        Endpoint endpoint = builder.buildEndpoint(endpointName);
+        EndpointInfo endpoint = builder.buildEndpoint(endpointName);
         int channelCount = 10;
         for (int i = 0; i < channelCount; i++)
         {
             endpoint = endpoint.putChannelDefinition("channel-" + i,
-                            getChannelType(i), "resource-" + i);
+                                                     getChannelType(i),
+                                                     "resource-" + i);
         }
         int urlCount = 10;
         for (int i = 0; i < urlCount; i++)
@@ -56,7 +59,8 @@ public class RabbitSocksAPITest extends APITestBase
         assertEquals(channelCount, endpoint.getChannelDefinitions().size());
         int count = 0;
         for (Map.Entry<String, ChannelDefinition> entry : endpoint
-                        .getChannelDefinitions().entrySet())
+                                                                  .getChannelDefinitions()
+                                                                  .entrySet())
         {
             assertEquals("channel-" + count, entry.getKey());
             assertEquals(getChannelType(count), entry.getValue().getType());
@@ -64,8 +68,8 @@ public class RabbitSocksAPITest extends APITestBase
             count++;
         }
         count = 0;
-        for (Map.Entry<String, String> entry : endpoint.getProtocolURLMap()
-                        .entrySet())
+        for (Map.Entry<String, String> entry : endpoint.getProtocols()
+                                                       .entrySet())
         {
             assertEquals("protocol-" + count, entry.getKey());
             assertEquals("url-" + count, entry.getValue());
@@ -76,9 +80,9 @@ public class RabbitSocksAPITest extends APITestBase
     public void testCreateEndpoint() throws Exception
     {
         String endpointName = "endpoint-1";
-        Endpoint endpoint1 = genEndpoint(endpointName, 10);
+        EndpointInfo endpoint1 = genEndpoint(endpointName, 10);
         RabbitSocksAPI api = getAPI();
-        Endpoint endpoint_ret = api.createEndpoint(endpoint1);
+        EndpointInfo endpoint_ret = api.createEndpoint(endpoint1);
         assertEndpoint(endpoint1, endpoint_ret);
         // Creating again with exact same definition should succeed
         endpoint_ret = api.createEndpoint(endpoint1);
@@ -87,7 +91,7 @@ public class RabbitSocksAPITest extends APITestBase
         assertEndpoint(endpoint1, endpoint_ret);
         // Create a new endpoint with same name but different definitions
         // Should fail
-        Endpoint endpoint2 = genEndpoint(endpointName, 5);
+        EndpointInfo endpoint2 = genEndpoint(endpointName, 5);
         try
         {
             api.createEndpoint(endpoint2);
@@ -110,19 +114,20 @@ public class RabbitSocksAPITest extends APITestBase
         }
         try
         {
-            Endpoint endpointNullName = RabbitSocksAPIFactory
-            .getEndpointBuilder().buildEndpoint(null);
+            EndpointInfo endpointNullName = RabbitSocksAPIFactory
+                                                                 .getEndpointBuilder()
+                                                                 .buildEndpoint(null);
             api.createEndpoint(endpointNullName);
             failNoException();
         }
         catch (IllegalArgumentException e)
         {
         }
-
         try
         {
-            Endpoint endpointNullName = RabbitSocksAPIFactory
-            .getEndpointBuilder().buildEndpoint("");
+            EndpointInfo endpointNullName = RabbitSocksAPIFactory
+                                                                 .getEndpointBuilder()
+                                                                 .buildEndpoint("");
             api.createEndpoint(endpointNullName);
             failNoException();
         }
@@ -131,24 +136,25 @@ public class RabbitSocksAPITest extends APITestBase
         }
     }
 
-    public void testListEndpointNames() throws Exception
+    public void testListEndpoints() throws Exception
     {
         RabbitSocksAPI api = getAPI();
         final int count = 10;
-        createEndpoints(api, count);
-        List<String> endpointNames = api.listEndpointNames();
-        assertNotNull(endpointNames);
-        assertEquals(10, endpointNames.size());
-        Set<String> names = new HashSet<String>();
-        for (int i = 0; i < count; i++)
+        EndpointInfo[] endpoints = createEndpoints(api, count);
+        List<EndpointInfo> endpointsRet = api.listEndpoints();
+        assertNotNull(endpoints);
+        assertEquals(count, endpointsRet.size());
+        Map<String, EndpointInfo> map = new HashMap<String, EndpointInfo>();
+        for (EndpointInfo ei : endpointsRet)
         {
-            names.add("endpoint-" + i);
+            map.put(ei.getName(), ei);
         }
-        for (String endpointName : endpointNames)
+        for (EndpointInfo ei : endpoints)
         {
-            names.remove(endpointName);
+            EndpointInfo ei2 = map.get(ei.getName());
+            assertNotNull(ei2);
+            assertEndpoint(ei, ei2);
         }
-        assertTrue(names.isEmpty());
     }
 
     public void testDeleteEndpoint() throws Exception
@@ -160,19 +166,21 @@ public class RabbitSocksAPITest extends APITestBase
         for (int i = 0; i < count; i++)
         {
             api.deleteEndpoint("endpoint-" + i);
-            List<String> endpointNames = api.listEndpointNames();
-            assertNotNull(endpointNames);
-            assertEquals(10 - (i + 1), endpointNames.size());
+            List<EndpointInfo> endpoints = api.listEndpoints();
+            assertNotNull(endpoints);
+            assertEquals(10 - (i + 1), endpoints.size());
             Set<String> names = new HashSet<String>();
             for (int j = i + 1; j < 10; j++)
             {
                 names.add("endpoint-" + j);
             }
-            for (String endpointName : endpointNames)
+            for (EndpointInfo endpoint : endpoints)
             {
-                names.remove(endpointName);
+                names.remove(endpoint.getName());
             }
             assertTrue(names.isEmpty());
+
+            //TODO !! test that any connections on the endpoint get closed too
         }
         try
         {
@@ -182,7 +190,6 @@ public class RabbitSocksAPITest extends APITestBase
         catch (IllegalArgumentException e)
         {
         }
-
         try
         {
             api.deleteEndpoint("");
@@ -204,14 +211,12 @@ public class RabbitSocksAPITest extends APITestBase
 
     public void testGetEndpoint() throws Exception
     {
-        RabbitSocksAPI api = RabbitSocksAPIFactory.getClient("localhost",
-                                                             55672,
-                                                             "socks-api");
+        RabbitSocksAPI api = getAPI();
         final int count = 10;
-        Endpoint[] endpoints = createEndpoints(api, count);
+        EndpointInfo[] endpoints = createEndpoints(api, count);
         for (int i = 0; i < count; i++)
         {
-            Endpoint endpoint = api.getEndpoint(endpoints[i].getName());
+            EndpointInfo endpoint = api.getEndpoint(endpoints[i].getName());
             assertEndpoint(endpoints[i], endpoint);
         }
         try
@@ -245,21 +250,21 @@ public class RabbitSocksAPITest extends APITestBase
     {
         RabbitSocksAPI api = getAPI();
         final String endpointName = "endpoint-0";
-        Endpoint endpoint = genEndpoint(endpointName, 10);
+        EndpointInfo endpoint = genEndpoint(endpointName, 10);
         api.createEndpoint(endpoint);
         final int count = 10;
         for (int i = 0; i < count; i++)
         {
-            String ticket = api.generateTicket(endpointName, "joe bloggs",
-                            System.currentTimeMillis() + 10000);
+            String ticket = api.generateTicket(endpointName,
+                                               "joe bloggs",
+                                               System.currentTimeMillis() + 10000);
 
             assertNotNull(ticket);
         }
-
         try
         {
             api.generateTicket("does-not-exist", "joe bloggs",
-                            System.currentTimeMillis() + 10000);
+                               System.currentTimeMillis() + 10000);
             failNoException();
         }
         catch (RabbitSocksAPIException e)
@@ -269,7 +274,7 @@ public class RabbitSocksAPITest extends APITestBase
         try
         {
             api.generateTicket("does-not-exist", null,
-                            System.currentTimeMillis() + 10000);
+                               System.currentTimeMillis() + 10000);
             failNoException();
         }
         catch (IllegalArgumentException e)
@@ -278,7 +283,7 @@ public class RabbitSocksAPITest extends APITestBase
         try
         {
             api.generateTicket("does-not-exist", "",
-                            System.currentTimeMillis() + 10000);
+                               System.currentTimeMillis() + 10000);
             failNoException();
         }
         catch (IllegalArgumentException e)
@@ -287,7 +292,7 @@ public class RabbitSocksAPITest extends APITestBase
         try
         {
             api.generateTicket("endpoint-0", "",
-                            System.currentTimeMillis() + 10000);
+                               System.currentTimeMillis() + 10000);
             failNoException();
         }
         catch (IllegalArgumentException e)
@@ -296,7 +301,7 @@ public class RabbitSocksAPITest extends APITestBase
         try
         {
             api.generateTicket("endpoint-0", null,
-                            System.currentTimeMillis() + 10000);
+                               System.currentTimeMillis() + 10000);
             failNoException();
         }
         catch (IllegalArgumentException e)
@@ -308,15 +313,15 @@ public class RabbitSocksAPITest extends APITestBase
     {
         RabbitSocksAPI api = getAPI();
         final String endpointName = "endpoint-0";
-        Endpoint endpoint = genEndpoint(endpointName, 10);
+        EndpointInfo endpoint = genEndpoint(endpointName, 10);
         endpoint = api.createEndpoint(endpoint);
-        List<ConnectionInfo> connInfos = api
-            .listConnectionsForEndpoint(endpointName);
+        List<ConnectionInfo> connInfos =
+            api.listConnectionsForEndpoint(endpointName);
         assertTrue(connInfos.isEmpty());
-        String url = endpoint.getProtocolURLMap().get("websockets");
+        String url = endpoint.getProtocols().get("websockets");
         assertNotNull(url);
         String ticket = api.generateTicket(endpointName, "joe bloggs", 1000);
-        final int numConns = 1;
+        final int numConns = 10;
         Connection[] conns = new Connection[numConns];
         for (int i = 0; i < numConns; i++)
         {
@@ -328,21 +333,24 @@ public class RabbitSocksAPITest extends APITestBase
         for (ConnectionInfo info : connInfos)
         {
             assertEquals(info.getEndpointName(), endpointName);
-            assertNotNull(info.getGuid());
-            //FIXME - assert this properly when it is fixed
-            //assertEquals(url, info.getUrl());
+            assertNotNull(info.getConnectionName());
+            //FIXME - protocol value is currently incorrect
             //assertEquals("websockets", info.getProtocol());
         }
         for (int i = 0; i < numConns; i++)
         {
             conns[i].close();
         }
-        // FIXME - we should wait for connections to close too - but right
-        // now connection close code is not handled properly on the server
-        //waitForConnections(api, endpointName, 0);
-        connInfos = api.listConnectionsForEndpoint("does-not-exist");
-        assertNotNull(conns);
-        assertTrue(connInfos.isEmpty());
+        waitForConnections(api, endpointName, 0);
+        try
+        {
+        	connInfos = api.listConnectionsForEndpoint("does-not-exist");
+        	failNoException();
+        }
+	    catch (RabbitSocksAPIException e)
+	    {
+	        assertEquals(404, e.getResponseCode());
+	    }
         try
         {
             api.listConnectionsForEndpoint(null);
@@ -361,19 +369,73 @@ public class RabbitSocksAPITest extends APITestBase
         }
     }
 
+    public void testListConnections() throws Exception
+    {
+        RabbitSocksAPI api = getAPI();
+        final int numEndpoints = 10;
+        EndpointInfo[] endpoints = createEndpoints(api, numEndpoints);
+        List<ConnectionInfo> connInfos = api.listConnections();
+        assertTrue(connInfos.isEmpty());
+        final int numConns = 10;
+        Connection[] conns = new Connection[numEndpoints * numConns];
+        for (int i = 0; i < numEndpoints; i++)
+        {
+            String url = endpoints[i].getProtocols().get("websockets");
+            assertNotNull(url);
+            String ticket = api.generateTicket(endpoints[i].getName(),
+                                               "joe bloggs", 1000);
+            for (int j = 0; j < numConns; j++)
+            {
+                conns[i * numConns + j] = createConnection(url, ticket);
+            }
+
+            waitForConnections(api, endpoints[i].getName(), numConns);
+        }
+        //Check that we have numConns connections per endpoint
+        connInfos = api.listConnections();
+        assertEquals(conns.length, connInfos.size());
+        Map<String, AtomicInteger> connCounts =
+            new HashMap<String, AtomicInteger>();
+        for (ConnectionInfo conn: connInfos)
+        {
+            assertNotNull(conn.getEndpointName());
+            AtomicInteger ai = connCounts.get(conn.getEndpointName());
+            if (ai == null)
+            {
+                ai = new AtomicInteger(0);
+                connCounts.put(conn.getEndpointName(), ai);
+            }
+            ai.incrementAndGet();
+            assertNotNull(conn.getConnectionName());
+            // FIXME - assert this properly when it is fixed
+            // assertEquals("websockets", info.getProtocol());
+        }
+        for (AtomicInteger ai: connCounts.values())
+        {
+            assertEquals(numConns, ai.get());
+        }
+        for (int i = 0; i < conns.length; i++)
+        {
+            conns[i].close();
+        }
+        // FIXME - we should wait for connections to close too - but right
+        // now connection close code is not handled properly on the server
+        waitForConnections(api, null, 0);
+    }
+
     private void failNoException()
     {
         fail("Should throw exception");
     }
 
-    private void assertEndpoint(final Endpoint endpoint1,
-                    final Endpoint endpoint2)
+    private void assertEndpoint(final EndpointInfo endpoint1,
+                    final EndpointInfo endpoint2)
     {
         assertEquals(endpoint1.getName(), endpoint2.getName());
         assertSameChannelMaps(endpoint1.getChannelDefinitions(),
-                        endpoint2.getChannelDefinitions());
+                              endpoint2.getChannelDefinitions());
         assertNotNull(endpoint2.getKey());
-        String url = endpoint2.getProtocolURLMap().get("websockets");
+        String url = endpoint2.getProtocols().get("websockets");
         assertNotNull(url);
     }
 
@@ -383,20 +445,25 @@ public class RabbitSocksAPITest extends APITestBase
      */
     private void waitForConnections(final RabbitSocksAPI api,
                     final String endpointName, final int count)
-    throws Exception
+        throws Exception
     {
         final long timeout = 5000;
         long start = System.currentTimeMillis();
         do
         {
-            List<com.rabbitmq.socks.api.ConnectionInfo> conns = api
-            .listConnectionsForEndpoint(endpointName);
-
+            List<ConnectionInfo> conns;
+            if (endpointName != null)
+            {
+                conns = api.listConnectionsForEndpoint(endpointName);
+            }
+            else
+            {
+                conns = api.listConnections();
+            }
             if (conns.size() == count)
             {
                 return;
             }
-
             Thread.sleep(10);
         }
         while (System.currentTimeMillis() - start < timeout);
@@ -417,27 +484,27 @@ public class RabbitSocksAPITest extends APITestBase
         }
     }
 
-    private Endpoint[] createEndpoints(final RabbitSocksAPI api, final int count)
-    throws Exception
+    private EndpointInfo[] createEndpoints(final RabbitSocksAPI api,
+        final int count)
+        throws Exception
     {
-        Endpoint[] endpoints = new Endpoint[10];
+        EndpointInfo[] endpoints = new EndpointInfo[count];
         for (int i = 0; i < count; i++)
         {
-            endpoints[i] = genEndpoint("endpoint-" + i, 10);
-            api.createEndpoint(endpoints[i]);
+            endpoints[i] = api.createEndpoint(genEndpoint("endpoint-" + i, 10));
         }
         return endpoints;
     }
 
-    private Endpoint genEndpoint(final String endpointName,
+    private EndpointInfo genEndpoint(final String endpointName,
                     final int numChannels)
     {
-        Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
-        .buildEndpoint(endpointName);
+        EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+                                                     .buildEndpoint(endpointName);
         for (int i = 0; i < numChannels; i++)
         {
             endpoint.putChannelDefinition("channel-" + i, getChannelType(i),
-                            "resource-" + i);
+                                          "resource-" + i);
         }
         return endpoint;
     }

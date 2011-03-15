@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 
 import junit.framework.TestCase;
 
+import com.rabbitmq.socks.api.EndpointInfo;
 import com.rabbitmq.socks.api.RabbitSocksAPI;
 import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
 import com.rabbitmq.socks.client.api.Connection;
@@ -19,22 +20,20 @@ import com.rabbitmq.socks.client.api.ConnectionImpl;
  */
 public abstract class APITestBase extends TestCase
 {
-
     protected void deleteAllEndpoints() throws Exception
     {
         RabbitSocksAPI api = getAPI();
-
-        List<String> endpointNames = api.listEndpointNames();
-
-        for (String endpointName : endpointNames)
+        List<EndpointInfo> endpoints = api.listEndpoints();
+        for (EndpointInfo endpoint : endpoints)
         {
-            api.deleteEndpoint(endpointName);
+            api.deleteEndpoint(endpoint.getName());
         }
     }
 
     protected RabbitSocksAPI getAPI()
     {
-        return RabbitSocksAPIFactory.getClient("localhost", 55672, "socks-api");
+        return RabbitSocksAPIFactory.getClient("localhost", 55672, "socks-api",
+                                               "guest", "guest");
     }
 
     protected Connection createConnection(final String url, final String ticket)

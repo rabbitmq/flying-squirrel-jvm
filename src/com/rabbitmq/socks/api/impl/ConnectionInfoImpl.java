@@ -3,40 +3,32 @@ package com.rabbitmq.socks.api.impl;
 import com.rabbitmq.socks.api.ConnectionInfo;
 
 /**
- * 
+ *
  * @author tfox
- * 
+ *
  */
 public class ConnectionInfoImpl implements ConnectionInfo
 {
-    private final String url;
-    private final String guid;
+    private final String connectionName;
     private final String endpointName;
     private final String protocol;
     private final String meta;
 
-    public ConnectionInfoImpl(final String url, final String guid,
+    public ConnectionInfoImpl(final String connectionName,
                     final String endpointName, final String protocol,
                     final String meta)
     {
         super();
-        this.url = url;
-        this.guid = guid;
+        this.connectionName = connectionName;
         this.endpointName = endpointName;
         this.protocol = protocol;
         this.meta = meta;
     }
 
     @Override
-    public String getUrl()
+    public String getConnectionName()
     {
-        return url;
-    }
-
-    @Override
-    public String getGuid()
-    {
-        return guid;
+        return connectionName;
     }
 
     @Override

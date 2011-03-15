@@ -9,7 +9,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.rabbitmq.socks.api.ChannelType;
-import com.rabbitmq.socks.api.Endpoint;
+import com.rabbitmq.socks.api.EndpointInfo;
 import com.rabbitmq.socks.api.RabbitSocksAPI;
 import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
 import com.rabbitmq.socks.client.api.ChannelListener;
@@ -54,12 +54,12 @@ public class EndToEndTest extends APITestBase
         Connection conn = null;
         try
         {
-            Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+            EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
                                                      .buildEndpoint("pub-sub-endpoint-0");
             endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
             endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
             endpoint = api.createEndpoint(endpoint);
-            String url = endpoint.getProtocolURLMap().get("websockets");
+            String url = endpoint.getProtocols().get("websockets");
             assertNotNull(url);
             String ticket = genTicket("pub-sub-endpoint-0");
             conn = createConnection(url, ticket);
@@ -116,12 +116,12 @@ public class EndToEndTest extends APITestBase
         Connection[] subscribers = null;
         try
         {
-            Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+            EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
                                                      .buildEndpoint("pub-sub-endpoint-0");
             endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
             endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
             endpoint = api.createEndpoint(endpoint);
-            String url = endpoint.getProtocolURLMap().get("websockets");
+            String url = endpoint.getProtocols().get("websockets");
             assertNotNull(url);
             String ticket = genTicket("pub-sub-endpoint-0");
             publishers = new Connection[numPublishers];
@@ -216,14 +216,14 @@ public class EndToEndTest extends APITestBase
         Connection conn = null;
         try
         {
-            Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+            EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
                                                      .buildEndpoint("req-rep-endpoint-0");
             endpoint.putChannelDefinition("ch-req", ChannelType.REQ,
                                           "conversation-0");
             endpoint.putChannelDefinition("ch-rep", ChannelType.REP,
                                           "conversation-0");
             endpoint = api.createEndpoint(endpoint);
-            String url = endpoint.getProtocolURLMap().get("websockets");
+            String url = endpoint.getProtocols().get("websockets");
             assertNotNull(url);
             String ticket = genTicket("req-rep-endpoint-0");
             conn = createConnection(url, ticket);
@@ -248,21 +248,21 @@ public class EndToEndTest extends APITestBase
         Connection connRep = null;
         try
         {
-            Endpoint endpointReq = RabbitSocksAPIFactory.getEndpointBuilder()
+            EndpointInfo endpointReq = RabbitSocksAPIFactory.getEndpointBuilder()
                                                         .buildEndpoint("req-endpoint-0");
             endpointReq.putChannelDefinition("ch-req", ChannelType.REQ,
                                              "conversation-1");
             endpointReq = api.createEndpoint(endpointReq);
-            String urlReq = endpointReq.getProtocolURLMap().get("websockets");
+            String urlReq = endpointReq.getProtocols().get("websockets");
             String ticketReq = api.generateTicket(endpointReq.getName(),
                                                   IDENTITY, 1000);
 
-            Endpoint endpointRep = RabbitSocksAPIFactory.getEndpointBuilder()
+            EndpointInfo endpointRep = RabbitSocksAPIFactory.getEndpointBuilder()
                                                         .buildEndpoint("rep-endpoint-0");
             endpointRep.putChannelDefinition("ch-rep", ChannelType.REP,
                                              "conversation-1");
             endpointRep = api.createEndpoint(endpointRep);
-            String urlRep = endpointRep.getProtocolURLMap().get("websockets");
+            String urlRep = endpointRep.getProtocols().get("websockets");
             String ticketRep = api.generateTicket(endpointRep.getName(),
                                                   IDENTITY, 1000);
             connReq = createConnection(urlReq, ticketReq);
@@ -291,12 +291,12 @@ public class EndToEndTest extends APITestBase
         Connection conn = null;
         try
         {
-            Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+            EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
                                                      .buildEndpoint("push-pull-endpoint-0");
             endpoint.putChannelDefinition("ch-push", ChannelType.PUSH, "queue1");
             endpoint.putChannelDefinition("ch-pull", ChannelType.PULL, "queue1");
             endpoint = api.createEndpoint(endpoint);
-            String url = endpoint.getProtocolURLMap().get("websockets");
+            String url = endpoint.getProtocols().get("websockets");
             String ticket = genTicket("push-pull-endpoint-0");
             conn = createConnection(url, ticket);
             final int numMessages = 100;
@@ -346,17 +346,17 @@ public class EndToEndTest extends APITestBase
 
     public void testPushPull() throws Exception
     {
-        Endpoint pushEndpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+        EndpointInfo pushEndpoint = RabbitSocksAPIFactory.getEndpointBuilder()
                                                      .buildEndpoint("push-endpoint-0");
         pushEndpoint.putChannelDefinition("ch-push", ChannelType.PUSH, "queue2");
         pushEndpoint = api.createEndpoint(pushEndpoint);
-        String urlPush = pushEndpoint.getProtocolURLMap().get("websockets");
+        String urlPush = pushEndpoint.getProtocols().get("websockets");
         String ticketPush = genTicket("push-endpoint-0");
-        Endpoint pullEndpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+        EndpointInfo pullEndpoint = RabbitSocksAPIFactory.getEndpointBuilder()
                                                      .buildEndpoint("pull-endpoint-0");
         pullEndpoint.putChannelDefinition("ch-pull", ChannelType.PULL, "queue2");
         pullEndpoint = api.createEndpoint(pullEndpoint);
-        String urlPull = pullEndpoint.getProtocolURLMap().get("websockets");
+        String urlPull = pullEndpoint.getProtocols().get("websockets");
         String ticketPull = genTicket("pull-endpoint-0");
         final int numPushers = 3;
         final int numPullers = 10;
@@ -389,12 +389,12 @@ public class EndToEndTest extends APITestBase
         Connection conn = null;
         try
         {
-            Endpoint endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+            EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
                                                      .buildEndpoint("pub-sub-endpoint-0");
             endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
             endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
             endpoint = api.createEndpoint(endpoint);
-            String url = endpoint.getProtocolURLMap().get("websockets");
+            String url = endpoint.getProtocols().get("websockets");
             String ticket;
             if (expired)
             {
@@ -578,5 +578,4 @@ public class EndToEndTest extends APITestBase
         }
         asserts.clear();
     }
-
 }

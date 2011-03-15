@@ -5,20 +5,21 @@ import java.util.Map;
 
 import com.rabbitmq.socks.api.ChannelDefinition;
 import com.rabbitmq.socks.api.ChannelType;
-import com.rabbitmq.socks.api.Endpoint;
+import com.rabbitmq.socks.api.EndpointInfo;
 
 /**
  *
  * @author tfox
  *
  */
-public class EndpointImpl implements Endpoint
+public class EndpointInfoImpl implements EndpointInfo
 {
     private final String name;
     private String key;
     private final Map<String, ChannelDefinition> channelDefs =
         new LinkedHashMap<String, ChannelDefinition>();
-    private final Map<String, String> urlMap = new LinkedHashMap<String, String>();
+    private final Map<String, String> protocols =
+        new LinkedHashMap<String, String>();
 
     @Override
     public String getKey()
@@ -33,12 +34,12 @@ public class EndpointImpl implements Endpoint
     }
 
     @Override
-    public Map<String, String> getProtocolURLMap()
+    public Map<String, String> getProtocols()
     {
-        return urlMap;
+        return protocols;
     }
 
-    public EndpointImpl(final String name)
+    public EndpointInfoImpl(final String name)
     {
         this.name = name;
     }
@@ -56,7 +57,7 @@ public class EndpointImpl implements Endpoint
     }
 
     @Override
-    public Endpoint putChannelDefinition(final String channelName,
+    public EndpointInfo putChannelDefinition(final String channelName,
                     final ChannelType channelType, final String resource)
     {
         channelDefs.put(channelName, new ChannelDefinitionImpl(channelType,
@@ -65,9 +66,9 @@ public class EndpointImpl implements Endpoint
     }
 
     @Override
-    public Endpoint putProtocolURL(final String protocolName, final String url)
+    public EndpointInfo putProtocolURL(final String protocolName, final String url)
     {
-        urlMap.put(protocolName, url);
+        protocols.put(protocolName, url);
         return this;
     }
 
