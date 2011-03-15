@@ -205,10 +205,8 @@ public class WebsocketImpl implements Websocket
     public synchronized void close() throws IOException
     {
         closed = true;
-        for (int i = 0; i < 9; i++)
-        {
-            outputStream.write(0x00);
-        }
+        outputStream.write(0xff);
+        outputStream.write(0x00);
         outputStream.flush();
         inputStream.close();
         outputStream.close();
