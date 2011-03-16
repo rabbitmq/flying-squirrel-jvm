@@ -82,7 +82,7 @@ public class EndToEndTest extends APITestBase
                         public void run()
                         {
                             assertEquals("this is a message " + i,
-                                            msg.getMessage());
+                                            msg.getBody());
                             assertEquals(IDENTITY, msg.getIdentity());
                             assertEquals("ch-sub", msg.getChannelName());
                             assertNull(msg.getReply());
@@ -96,7 +96,7 @@ public class EndToEndTest extends APITestBase
             {
                 String msg = "this is a message " + i;
                 Message m = new Message("ch-pub");
-                m.setMessage(msg);
+                m.setBody(msg);
                 conn.send(m);
             }
             assertTrue(latch.await(5, TimeUnit.SECONDS));
@@ -154,7 +154,7 @@ public class EndToEndTest extends APITestBase
                             @Override
                             public void run()
                             {
-                                msgs.remove(msg.getMessage());
+                                msgs.remove(msg.getBody());
                                 assertEquals(IDENTITY, msg
                                                           .getIdentity());
                                 assertEquals("ch-sub",
@@ -178,7 +178,7 @@ public class EndToEndTest extends APITestBase
                     String msg = "this is a message " + i + "-" + j;
                     msgs.put(msg, FOO);
                     Message m = new Message("ch-pub");
-                    m.setMessage(msg);
+                    m.setBody(msg);
                     publishers[i].send(m);
                 }
             }
@@ -318,7 +318,7 @@ public class EndToEndTest extends APITestBase
                         public void run()
                         {
                             assertEquals("this is message " + i,
-                                            msg.getMessage());
+                                            msg.getBody());
                             assertEquals(IDENTITY, msg.getIdentity());
                             assertEquals("ch-pull", msg.getChannelName());
                             assertNull(msg.getReply());
@@ -332,7 +332,7 @@ public class EndToEndTest extends APITestBase
             {
                 String msg = "this is message " + i;
                 Message sent = new Message("ch-push");
-                sent.setMessage(msg);
+                sent.setBody(msg);
                 conn.send(sent);
             }
             assertTrue(l.await(5, TimeUnit.SECONDS));
@@ -469,7 +469,7 @@ public class EndToEndTest extends APITestBase
                 }
             });
             Message m = new Message("ch-pub");
-            m.setMessage("this is a message");
+            m.setBody("this is a message");
             conn.send(m);
             //Make sure message *doesn't* arrive
             assertFalse(latch.await(1, TimeUnit.SECONDS));
@@ -506,7 +506,7 @@ public class EndToEndTest extends APITestBase
                 @Override
                 public void onMessage(final Message msg)
                 {
-                    msgs.remove(msg.getMessage());
+                    msgs.remove(msg.getBody());
                     addToAssertsList(new Runnable()
                     {
                         @Override
@@ -528,7 +528,7 @@ public class EndToEndTest extends APITestBase
                 String msg = "this is a message" + i + "-" + j;
                 msgs.put(msg, FOO);
                 Message sent = new Message("ch-push");
-                sent.setMessage(msg);
+                sent.setBody(msg);
                 pushers[i].send(sent);
             }
         }
@@ -554,7 +554,7 @@ public class EndToEndTest extends APITestBase
                     @Override
                     public void run()
                     {
-                        assertEquals("this is message " + i, msg.getMessage());
+                        assertEquals("this is message " + i, msg.getBody());
                         assertEquals("ch-rep", msg.getChannelName());
                         assertEquals(IDENTITY, msg.getIdentity());
                         assertNotNull(msg.getReply());
@@ -566,7 +566,7 @@ public class EndToEndTest extends APITestBase
                 {
                     Message reply = new Message("ch-rep");
                     reply.setReply(msg.getReply());
-                    reply.setMessage("this is response " + i);
+                    reply.setBody("this is response " + i);
                     connRep.send(reply);
                 }
                 catch (IOException e)
@@ -590,7 +590,7 @@ public class EndToEndTest extends APITestBase
                     @Override
                     public void run()
                     {
-                        assertEquals("this is response " + i, msg.getMessage());
+                        assertEquals("this is response " + i, msg.getBody());
                         assertEquals("ch-req", msg.getChannelName());
                         assertEquals(IDENTITY, msg.getIdentity());
                         assertNotNull(msg.getReply());
@@ -605,7 +605,7 @@ public class EndToEndTest extends APITestBase
             // Send a request
             String msg = "this is message " + i;
             Message sent = new Message("ch-req");
-            sent.setMessage(msg);
+            sent.setBody(msg);
             connReq.send(sent);
         }
         assertTrue(latch.await(5, TimeUnit.SECONDS));

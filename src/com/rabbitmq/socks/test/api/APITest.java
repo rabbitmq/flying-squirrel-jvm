@@ -407,8 +407,7 @@ public class APITest extends APITestBase
             }
             ai.incrementAndGet();
             assertNotNull(conn.getConnectionName());
-            // FIXME - assert this properly when it is fixed
-            //assertEquals("websockets", conn.getProtocol());
+            assertEquals("websockets", conn.getProtocol());
         }
         for (AtomicInteger ai: connCounts.values())
         {

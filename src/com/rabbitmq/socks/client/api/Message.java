@@ -58,14 +58,14 @@ public class Message
         return channel;
     }
 
-    public String getMessage()
+    public String getBody()
     {
         return message;
     }
 
-    public void setMessage(String msg)
+    public void setBody(String body)
     {
-        this.message = msg;
+        this.message = body;
     }
 
     public String toJSON()
