@@ -83,27 +83,18 @@ import com.rabbitmq.socks.websocket.WebsocketListener;
 public class WebsocketImpl implements Websocket
 {
     private final URI uri;
-
     private Socket socket;
-
     private InputStream inputStream;
-
     private OutputStream outputStream;
-
     private HashMap<String, String> headers;
-
     private final Executor executor;
-
     private volatile boolean closed = true;
-
     private volatile WebsocketListener listener;
 
     public WebsocketImpl(URI url, Executor executor)
     {
         uri = url;
-
         this.executor = executor;
-
         String protocol = uri.getScheme();
         if (!protocol.equals("ws") && !protocol.equals("wss"))
         {
@@ -260,7 +251,6 @@ public class WebsocketImpl implements Websocket
                 throw new IllegalArgumentException("Unsupported scheme");
             }
         }
-
         if (scheme.equals("wss"))
         {
             SocketFactory factory = SSLSocketFactory.getDefault();

@@ -139,6 +139,8 @@ public class EndToEndTest extends APITestBase
             for (int i = 0; i < numSubscribers; i++)
             {
                 subscribers[i] = createConnection(url, ticket);
+                
+                Thread.sleep(1000);
                 latches[i] = new CountDownLatch(numMessages * numPublishers);
                 final CountDownLatch l = latches[i];
                 subscribers[i].setChannelListener("ch-sub",

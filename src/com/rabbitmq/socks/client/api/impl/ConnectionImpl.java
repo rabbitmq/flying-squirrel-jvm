@@ -25,10 +25,12 @@ import com.rabbitmq.socks.websocket.impl.WebsocketImpl;
 public class ConnectionImpl implements Connection, WebsocketListener
 {
     private final Websocket ws;
-    
     private CountDownLatch connectLatch = new CountDownLatch(1);
-    
     private volatile String connect;
+    private volatile boolean connected;
+    
+    private final Map<String, ChannelListener> listeners =
+    	new ConcurrentHashMap<String, ChannelListener>();
 
     public ConnectionImpl(final URI uri, final Executor executor)
     {
@@ -37,8 +39,12 @@ public class ConnectionImpl implements Connection, WebsocketListener
     }
 
     @Override
-    public void connect(String ticket) throws IOException
+    public synchronized void connect(final String ticket) throws IOException
     {
+    	if (connected)
+    	{
+    		throw new IOException("Connection cannot be connected more than once");
+    	}
         ws.connect();
         ws.send(new Connect(ticket).toJSON());
         while (true)
@@ -63,25 +69,27 @@ public class ConnectionImpl implements Connection, WebsocketListener
         {
         	throw new IOException("Failed to connect to server: " + connect);
         }
+        connected = true;
     }
 
-    private final Map<String, ChannelListener> listeners =
-    	new ConcurrentHashMap<String, ChannelListener>();
-
     @Override
-    public void setChannelListener(String channelName, ChannelListener listener)
+    public synchronized void setChannelListener(final String channelName, final ChannelListener listener)
     {
         listeners.put(channelName, listener);
     }
 
     @Override
-    public void send(Message message) throws IOException
+    public synchronized void send(final Message message) throws IOException
     {
+    	if (!connected)
+    	{
+    		throw new IOException("Connection is not yet connected");
+    	}
         ws.send(message.toJSON());
     }
 
     @Override
-    public void close() throws IOException
+    public synchronized void close() throws IOException
     {
         ws.close();
     }
@@ -100,6 +108,10 @@ public class ConnectionImpl implements Connection, WebsocketListener
         	}
         	else
         	{
+        		if (!connected)
+        		{
+        			throw new IOException("Message received before connected");
+        		}
         		Message msg = (Message)frame;
                 ChannelListener listener = listeners.get(msg.getChannelName());
                 if (listener != null)
