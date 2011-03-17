@@ -113,8 +113,8 @@ public class EndToEndTest extends APITestBase
 
     public void testPubSubDifferentWebsockets() throws Exception
     {
-        final int numPublishers = 3;
-        final int numSubscribers = 3;
+        final int numPublishers = 1;
+        final int numSubscribers = 1;
         Connection[] publishers = null;
         Connection[] subscribers = null;
         try

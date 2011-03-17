@@ -33,11 +33,12 @@ public class OpenCloseWorker extends Worker
             String ticket = api.generateTicket(endpoint.getName(),
                                                "joe bloggs",
                                                1000);
+            int c = 0;
             while (!closed)
             {
                 Connection conn = new ConnectionImpl(new URI(url), executor);
                 conn.connect(ticket);
-                System.out.println("Connected");
+                System.out.println(this + " Connected " + c++);
                 conn.close();
             }
         }

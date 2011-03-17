@@ -37,7 +37,9 @@ import java.net.Socket;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
@@ -203,17 +205,35 @@ public class WebsocketImpl implements Websocket
 
     //Hack so we can test hard closing in tests - some browsers do this!
     public static volatile boolean HARD_CLOSE = false;
+    
+    private CountDownLatch closeLatch = new CountDownLatch(1);
 
     @Override
     public synchronized void close() throws IOException
-    {
-        closed = true;
+    {        
         if (!HARD_CLOSE)
         {
         	outputStream.write(0xFF);
         	outputStream.write(0x0);
-        	outputStream.flush();
+        	outputStream.flush();        	
+        	//Now wait for response
+        	while (true)
+        	{
+        		try
+        		{
+		        	if (!closeLatch.await(5, TimeUnit.SECONDS))
+		        	{
+		        		throw new IOException("Timed out waiting for close handshake from server");
+		        	}
+		        	break;
+        		}
+        		catch (InterruptedException e)
+        		{
+        			//Ok this can happen - spurious wakeups
+        		}
+        	}
         }
+        closed = true;
         inputStream.close();
         outputStream.close();
         socket.close();
@@ -264,7 +284,10 @@ public class WebsocketImpl implements Websocket
                     try
                     {
                         String msg = recv();
-                        listener.onMessage(msg);
+                        if (msg != null)
+                        {
+                        	listener.onMessage(msg);
+                        }
                     }
                     catch (IOException e)
                     {
@@ -282,33 +305,35 @@ public class WebsocketImpl implements Websocket
     private String recv() throws IOException
     {
         StringBuffer buf = new StringBuffer();
-
         int b = inputStream.read();
-        if ((b & 0x80) == 0x80)
+        if (b == 0xFF)
         {
-            // Skip data frame
-            int len = 0;
-            do
-            {
-                b = inputStream.read() & 0x7f;
-                len = len * 128 + b;
-            }
-            while ((b & 0x80) != 0x80);
-
-            for (int i = 0; i < len; i++)
-            {
-                inputStream.read();
-            }
-        }
-
+        	//TODO we don't support data frames yet, apart from the closing handshake 
+        	//which is a zero length data frame
+        	b = inputStream.read();        
+        	if (b == 0)
+        	{
+        		//Closing handshake
+        		closeLatch.countDown();
+        		return null;
+        	}
+        	else
+        	{
+        		throw new IOException("Invalid protocol");
+        	}
+        }     
         while (true)
         {
             b = inputStream.read();
+            
+            if (b == -1)
+            {
+            	return null;
+            }
             if (b == 0xff)
             {
                 break;
             }
-
             buf.append((char) b);
         }
 
