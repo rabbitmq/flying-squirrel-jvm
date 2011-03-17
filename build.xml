@@ -54,7 +54,7 @@
 			<formatter type="plain" />
 			<batchtest fork="no" todir="${tests-report}">
 				<fileset dir="${src}">
-					<include name="**/*Test.java" />
+					<include name="**/client/**/*Test.java" />
 					<exclude name="**/stress/**/*Test.java" />
 				</fileset>
 			</batchtest>

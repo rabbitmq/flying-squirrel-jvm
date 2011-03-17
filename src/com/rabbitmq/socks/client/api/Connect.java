@@ -5,6 +5,7 @@ import java.io.StringReader;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonToken;
 
 /**
@@ -32,11 +33,9 @@ public class Connect extends Frame
         return ticket;
     }
 
-    public String toJSON()
+    public void generateFields(JsonGenerator jg) throws IOException
     {
-        StringBuffer buff = new StringBuffer("{\"").append(CONNECT);
-        buff.append("\":\"").append(ticket).append("\"}");
-        return buff.toString();
+        jg.writeStringField(CONNECT, ticket);
     }
 
     protected void handleField(String fieldName, JsonParser jp) throws IOException

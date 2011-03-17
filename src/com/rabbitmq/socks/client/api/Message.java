@@ -5,6 +5,7 @@ import java.io.StringReader;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonToken;
 
 /**
@@ -68,21 +69,18 @@ public class Message extends Frame
         this.message = body;
     }
 
-    public String toJSON()
+    protected void generateFields(JsonGenerator jg) throws IOException
     {
-        StringBuffer buff = new StringBuffer("{\"channel\":\"");
-        buff.append(channel).append("\",\"message\":\"").append(message)
-        .append("\"");
+        jg.writeStringField("channel", channel);
+        jg.writeStringField("message", message);
         if (identity != null)
         {
-            buff.append(",\"identity\":\"").append(identity).append("\"");
+            jg.writeStringField("identity", identity);
         }
         if (reply != null)
         {
-            buff.append(",\"reply\":\"").append(reply).append("\"");
+            jg.writeStringField("reply", reply);
         }
-        buff.append('}');
-        return buff.toString();
     }
 
     protected void handleField(String fieldName, JsonParser jp)
