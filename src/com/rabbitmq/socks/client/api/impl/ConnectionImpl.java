@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import com.rabbitmq.socks.client.api.ChannelListener;
-import com.rabbitmq.socks.client.api.Connection;
-import com.rabbitmq.socks.client.api.Message;
 import com.rabbitmq.socks.client.api.Connect;
+import com.rabbitmq.socks.client.api.Connection;
+import com.rabbitmq.socks.client.api.Frame;
+import com.rabbitmq.socks.client.api.Message;
 import com.rabbitmq.socks.websocket.Websocket;
 import com.rabbitmq.socks.websocket.WebsocketListener;
 import com.rabbitmq.socks.websocket.impl.WebsocketImpl;
@@ -22,6 +25,10 @@ import com.rabbitmq.socks.websocket.impl.WebsocketImpl;
 public class ConnectionImpl implements Connection, WebsocketListener
 {
     private final Websocket ws;
+    
+    private CountDownLatch connectLatch = new CountDownLatch(1);
+    
+    private volatile String connect;
 
     public ConnectionImpl(final URI uri, final Executor executor)
     {
@@ -34,6 +41,28 @@ public class ConnectionImpl implements Connection, WebsocketListener
     {
         ws.connect();
         ws.send(new Connect(ticket).toJSON());
+        while (true)
+        {
+        	try
+        	{
+		        if (!connectLatch.await(5, TimeUnit.SECONDS))
+		        {
+		        	throw new IOException("Timed out waiting for connect response from server");
+		        }
+		        else
+		        {
+		        	break;
+		        }
+        	}
+        	catch (InterruptedException e)
+        	{
+        		//Ignore - this can happen- we need to keep waiting
+        	}
+        }
+        if (!connect.equals("ok"))
+        {
+        	throw new IOException("Failed to connect to server: " + connect);
+        }
     }
 
     private final Map<String, ChannelListener> listeners =
@@ -59,16 +88,25 @@ public class ConnectionImpl implements Connection, WebsocketListener
 
     @Override
     public void onMessage(final String json)
-    {
-        Message msg = new Message();
+    {        
         try
         {
-            msg.fromJSON(json);
-            ChannelListener listener = listeners.get(msg.getChannelName());
-            if (listener != null)
-            {
-                listener.onMessage(msg);
-            }
+        	Frame frame = Frame.fromJSON(json);        	
+        	if (frame.isConnect())
+        	{
+        		//TODO - the connect field can pass an error message to the user
+        		connect = ((Connect)frame).getConnect();
+        		connectLatch.countDown();        		
+        	}
+        	else
+        	{
+        		Message msg = (Message)frame;
+                ChannelListener listener = listeners.get(msg.getChannelName());
+                if (listener != null)
+                {
+                    listener.onMessage(msg);
+                }
+        	}
         }
         catch (IOException e)
         {

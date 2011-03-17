@@ -422,11 +422,6 @@ public class APITest extends APITestBase
         waitForConnections(api, null, 0);
     }
 
-    private void failNoException()
-    {
-        fail("Should throw exception");
-    }
-
     private void assertEndpoint(final EndpointInfo endpoint1,
                     final EndpointInfo endpoint2)
     {

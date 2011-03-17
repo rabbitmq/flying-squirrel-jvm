@@ -16,10 +16,6 @@ import org.codehaus.jackson.JsonToken;
  */
 public abstract class Frame
 {
-
-    protected abstract void handleField(String _fieldName, JsonParser _jp)
-        throws IOException;
-
     protected abstract void generateFields(JsonGenerator _jg)
         throws IOException;
 
@@ -35,17 +31,54 @@ public abstract class Frame
         return writer.toString();
     }
 
-    public void fromJSON(final String json) throws IOException
+    public static Frame fromJSON(final String json) throws IOException
     {
         JsonFactory factory = new JsonFactory();
         JsonParser jp = factory.createJsonParser(new StringReader(json));
         jp.nextToken();
+        String channel = null;
+        String reply = null;
+        String identity = null;
+        String message = null;
+        String connect = null;
         while (jp.nextToken() != JsonToken.END_OBJECT)
         {
             String fieldName = jp.getCurrentName();
-            jp.nextToken();
-            handleField(fieldName, jp);
+            jp.nextToken();            
+            if ("channel".equals(fieldName))
+            {
+                channel = jp.getText();
+            }
+            else if ("reply".equals(fieldName))
+            {
+                reply = jp.getText();
+            }
+            else if ("identity".equals(fieldName))
+            {
+                identity = jp.getText();
+            }
+            else if ("message".equals(fieldName))
+            {
+                message = jp.getText();
+            }
+            else if ("connect".equals(fieldName))
+            {
+                connect = jp.getText();
+            }
+        }        
+        if (connect != null)
+        {
+        	return new Connect(connect);
         }
+        else
+        {
+        	return new Message(channel, reply, identity, message);				
+        }
+    }
+    
+    public boolean isConnect()
+    {
+    	return false;
     }
 
 }

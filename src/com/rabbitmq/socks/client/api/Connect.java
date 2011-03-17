@@ -1,12 +1,8 @@
 package com.rabbitmq.socks.client.api;
 
 import java.io.IOException;
-import java.io.StringReader;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonToken;
 
 /**
  *
@@ -17,33 +13,30 @@ public class Connect extends Frame
 {
     public final static String CONNECT = "connect";
 
+    private String connect;
+
     public Connect()
     {
     }
 
-    public Connect(final String ticket)
+    public Connect(final String connect)
     {
-        this.ticket = ticket;
+        this.connect = connect;
     }
 
-    private String ticket;
-
-    public String getTicket()
+    public String getConnect()
     {
-        return ticket;
+        return connect;
     }
 
     public void generateFields(JsonGenerator jg) throws IOException
     {
-        jg.writeStringField(CONNECT, ticket);
+        jg.writeStringField(CONNECT, connect);
     }
-
-    protected void handleField(String fieldName, JsonParser jp) throws IOException
+    
+    public boolean isConnect()
     {
-        if (CONNECT.equals(fieldName))
-        {
-            ticket = jp.getText();
-        }
+    	return true;
     }
 
 }

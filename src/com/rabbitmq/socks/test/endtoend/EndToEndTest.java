@@ -167,10 +167,6 @@ public class EndToEndTest extends APITestBase
                     }
                 });
             }
-            // FIXME - this sleep is currently necessary since the connection
-            // setup (ticket sending) "handshake" is currently async, this will
-            // be fixed soon
-            Thread.sleep(2000);
             for (int i = 0; i < numPublishers; i++)
             {
                 for (int j = 0; j < numMessages; j++)
@@ -230,9 +226,6 @@ public class EndToEndTest extends APITestBase
             assertNotNull(url);
             String ticket = genTicket("req-rep-endpoint-0");
             conn = createConnection(url, ticket);
-            //FIXME - need to sleep for now, until synchronous connection
-            //handshake is in place
-            Thread.sleep(2000);
             testReqRep(conn, conn);
         }
         finally
@@ -270,10 +263,6 @@ public class EndToEndTest extends APITestBase
                                                   IDENTITY, 1000);
             connReq = createConnection(urlReq, ticketReq);
             connRep = createConnection(urlRep, ticketRep);
-            // FIXME - this sleep is currently necessary since the connection
-            // setup (ticket sending) "handshake" is currently async, this will
-            // be fixed soon
-            Thread.sleep(2000);
             testReqRep(connReq, connRep);
         }
         finally
@@ -458,22 +447,17 @@ public class EndToEndTest extends APITestBase
                 ticket = "invalid-ticket";
             }
             assertNotNull(url);
-            conn = createConnection(url, ticket);
-            final CountDownLatch latch = new CountDownLatch(1);
-            conn.setChannelListener("ch-sub", new ChannelListener()
+            try
             {
-                @Override
-                public void onMessage(final Message msg)
-                {
-                    latch.countDown();
-                }
-            });
-            Message m = new Message("ch-pub");
-            m.setBody("this is a message");
-            conn.send(m);
-            //Make sure message *doesn't* arrive
-            assertFalse(latch.await(1, TimeUnit.SECONDS));
-            runAsserts();
+            	conn = createConnection(url, ticket);
+            	//Connect should fail if invalid ticket
+            	failNoException();
+            }
+            catch (IOException e)
+            {
+            	//Ok
+            }
+            
         }
         finally
         {

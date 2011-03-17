@@ -23,8 +23,17 @@ public class Message extends Frame
     {
         this.channel = channelName;
     }
+    
+    public Message(final String channel, final String reply,
+    		       final String identity, final String message)
+    {
+		this.channel = channel;
+		this.reply = reply;
+		this.identity = identity;
+		this.message = message;
+	}
 
-    private String channel;
+	private String channel;
     private String reply;
     private String identity;
     private String message;
@@ -68,6 +77,12 @@ public class Message extends Frame
     {
         this.message = body;
     }
+    
+    @Override
+    public boolean isConnect()
+    {
+    	return false;
+    }
 
     protected void generateFields(JsonGenerator jg) throws IOException
     {
@@ -80,27 +95,6 @@ public class Message extends Frame
         if (reply != null)
         {
             jg.writeStringField("reply", reply);
-        }
-    }
-
-    protected void handleField(String fieldName, JsonParser jp)
-        throws IOException
-    {
-        if ("channel".equals(fieldName))
-        {
-            channel = jp.getText();
-        }
-        else if ("reply".equals(fieldName))
-        {
-            reply = jp.getText();
-        }
-        else if ("identity".equals(fieldName))
-        {
-            identity = jp.getText();
-        }
-        else if ("message".equals(fieldName))
-        {
-            message = jp.getText();
         }
     }
 }

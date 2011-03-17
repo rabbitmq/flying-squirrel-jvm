@@ -21,6 +21,11 @@ import com.rabbitmq.socks.client.api.impl.ConnectionImpl;
  */
 public abstract class APITestBase extends TestCase
 {
+    protected void failNoException()
+    {
+        fail("Should throw exception");
+    }
+
     protected void deleteAllEndpoints() throws Exception
     {
         RabbitSocksAPI api = getAPI();
