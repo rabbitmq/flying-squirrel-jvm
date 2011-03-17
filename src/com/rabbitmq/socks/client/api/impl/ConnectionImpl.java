@@ -9,6 +9,7 @@ import java.util.concurrent.Executor;
 import com.rabbitmq.socks.client.api.ChannelListener;
 import com.rabbitmq.socks.client.api.Connection;
 import com.rabbitmq.socks.client.api.Message;
+import com.rabbitmq.socks.client.api.Connect;
 import com.rabbitmq.socks.websocket.Websocket;
 import com.rabbitmq.socks.websocket.WebsocketListener;
 import com.rabbitmq.socks.websocket.impl.WebsocketImpl;
@@ -32,7 +33,7 @@ public class ConnectionImpl implements Connection, WebsocketListener
     public void connect(String ticket) throws IOException
     {
         ws.connect();
-        ws.send(ticket);
+        ws.send(new Connect(ticket).toJSON());
     }
 
     private final Map<String, ChannelListener> listeners =
