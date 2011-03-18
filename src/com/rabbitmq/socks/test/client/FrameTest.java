@@ -1,6 +1,7 @@
 package com.rabbitmq.socks.test.client;
 
 import com.rabbitmq.socks.client.api.*;
+import com.rabbitmq.socks.client.api.impl.Frame;
 
 import junit.framework.TestCase;
 

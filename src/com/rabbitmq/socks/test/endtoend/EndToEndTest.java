@@ -139,7 +139,7 @@ public class EndToEndTest extends APITestBase
             for (int i = 0; i < numSubscribers; i++)
             {
                 subscribers[i] = createConnection(url, ticket);
-                
+
                 //Thread.sleep(1000);
                 latches[i] = new CountDownLatch(numMessages * numPublishers);
                 final CountDownLatch l = latches[i];
@@ -415,66 +415,6 @@ public class EndToEndTest extends APITestBase
         finally
         {
         	WebsocketImpl.HARD_CLOSE = false;
-        }
-    }
-
-    public void testInvalidTicket() throws Exception
-    {
-        testInvalidTicket(false);
-    }
-
-    public void testExpiredTicket() throws Exception
-    {
-        testInvalidTicket(true);
-    }
-
-    private void testInvalidTicket(boolean expired) throws Exception
-    {
-        Connection conn = null;
-        try
-        {
-            EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
-                                                     .buildEndpoint("pub-sub-endpoint-0");
-            endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
-            endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
-            endpoint = api.createEndpoint(endpoint);
-            String url = endpoint.getProtocols().get("websockets");
-            String ticket;
-            if (expired)
-            {
-                ticket = api.generateTicket(endpoint.getName(), IDENTITY, 0);
-            }
-            else
-            {
-                ticket = "invalid-ticket";
-            }
-            assertNotNull(url);
-            try
-            {
-            	conn = createConnection(url, ticket);
-            	//Connect should fail if invalid ticket
-            	failNoException();
-            }
-            catch (IOException e)
-            {
-            	//Ok
-            }
-            
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                try
-                {
-                    conn.close();
-                }
-                catch (Exception ignore)
-                {
-                    //Close might fail since server might close connection
-                    //if ticket invalid
-                }
-            }
         }
     }
 

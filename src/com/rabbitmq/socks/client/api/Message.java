@@ -1,12 +1,11 @@
 package com.rabbitmq.socks.client.api;
 
 import java.io.IOException;
-import java.io.StringReader;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonToken;
+
+import com.rabbitmq.socks.client.api.impl.Frame;
+import com.rabbitmq.socks.client.api.impl.FrameType;
 
 /**
  *
@@ -15,18 +14,16 @@ import org.codehaus.jackson.JsonToken;
  */
 public class Message extends Frame
 {
-    public Message()
-    {
-    }
-
     public Message(final String channelName)
     {
+        super(FrameType.MESSAGE);
         this.channel = channelName;
     }
-    
+
     public Message(final String channel, final String reply,
     		       final String identity, final String message)
     {
+        super(FrameType.MESSAGE);
 		this.channel = channel;
 		this.reply = reply;
 		this.identity = identity;
@@ -77,13 +74,8 @@ public class Message extends Frame
     {
         this.message = body;
     }
-    
-    @Override
-    public boolean isConnect()
-    {
-    	return false;
-    }
 
+    @Override
     protected void generateFields(JsonGenerator jg) throws IOException
     {
         jg.writeStringField("channel", channel);

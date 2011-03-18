@@ -1,13 +1,16 @@
-package com.rabbitmq.socks.client.api;
+package com.rabbitmq.socks.client.api.impl;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
 import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+
+import com.rabbitmq.socks.client.api.Connect;
+import com.rabbitmq.socks.client.api.Message;
 
 /**
  *
@@ -16,6 +19,20 @@ import org.codehaus.jackson.JsonToken;
  */
 public abstract class Frame
 {
+    public final static String CHANNEL_FIELD = "channel";
+    public final static String MESSAGE_FIELD = "message";
+    public final static String IDENTITY_FIELD = "identity";
+    public final static String REPLY_FIELD = "reply";
+    public final static String CONNECT_FIELD = "connect";
+    public final static String ERROR_CODE_FIELD = "error-code";
+
+    private final FrameType frameType;
+
+    public Frame(final FrameType frameType)
+    {
+        this.frameType = frameType;
+    }
+
     protected abstract void generateFields(JsonGenerator _jg)
         throws IOException;
 
@@ -41,44 +58,53 @@ public abstract class Frame
         String identity = null;
         String message = null;
         String connect = null;
+        String errorCode = null;
         while (jp.nextToken() != JsonToken.END_OBJECT)
         {
             String fieldName = jp.getCurrentName();
-            jp.nextToken();            
-            if ("channel".equals(fieldName))
+            jp.nextToken();
+            if (CHANNEL_FIELD.equals(fieldName))
             {
                 channel = jp.getText();
             }
-            else if ("reply".equals(fieldName))
-            {
-                reply = jp.getText();
-            }
-            else if ("identity".equals(fieldName))
-            {
-                identity = jp.getText();
-            }
-            else if ("message".equals(fieldName))
+            else if (MESSAGE_FIELD.equals(fieldName))
             {
                 message = jp.getText();
             }
-            else if ("connect".equals(fieldName))
+            else if (IDENTITY_FIELD.equals(fieldName))
+            {
+                identity = jp.getText();
+            }
+            else if (REPLY_FIELD.equals(fieldName))
+            {
+                reply = jp.getText();
+            }
+            else if (CONNECT_FIELD.equals(fieldName))
             {
                 connect = jp.getText();
             }
-        }        
+            else if (ERROR_CODE_FIELD.equals(fieldName))
+            {
+                errorCode = jp.getText();
+            }
+        }
         if (connect != null)
         {
         	return new Connect(connect);
         }
+        else if (errorCode != null)
+        {
+            return new Error(errorCode);
+        }
         else
         {
-        	return new Message(channel, reply, identity, message);				
+        	return new Message(channel, reply, identity, message);
         }
     }
-    
-    public boolean isConnect()
+
+    public FrameType getFrameType()
     {
-    	return false;
+    	return frameType;
     }
 
 }

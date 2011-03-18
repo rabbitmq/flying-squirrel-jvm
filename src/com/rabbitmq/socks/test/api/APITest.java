@@ -1,11 +1,17 @@
 package com.rabbitmq.socks.test.api;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.rabbitmq.socks.api.ChannelDefinition;
 import com.rabbitmq.socks.api.ChannelType;
@@ -16,7 +22,11 @@ import com.rabbitmq.socks.api.RabbitSocksAPI;
 import com.rabbitmq.socks.api.RabbitSocksAPIException;
 import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
 import com.rabbitmq.socks.client.api.Connection;
+import com.rabbitmq.socks.client.api.ErrorListener;
+import com.rabbitmq.socks.client.api.Message;
+import com.rabbitmq.socks.client.api.impl.ConnectionImpl;
 import com.rabbitmq.socks.test.APITestBase;
+import com.rabbitmq.socks.websocket.Websocket;
 
 /**
  *
@@ -420,6 +430,190 @@ public class APITest extends APITestBase
         // FIXME - we should wait for connections to close too - but right
         // now connection close code is not handled properly on the server
         waitForConnections(api, null, 0);
+    }
+
+    public void testExpiredTicket() throws Exception
+    {
+        testInvalidTicket(true);
+    }
+
+    public void testInvalidTicket() throws Exception
+    {
+        testInvalidTicket(false);
+    }
+
+    private void testInvalidTicket(boolean expired) throws Exception
+    {
+        Connection conn = null;
+
+        RabbitSocksAPI api = getAPI();
+        EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+                                                 .buildEndpoint("pub-sub-endpoint-0");
+        endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
+        endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
+        endpoint = api.createEndpoint(endpoint);
+        String url = endpoint.getProtocols().get("websockets");
+        String ticket;
+        if (expired)
+        {
+            ticket = api.generateTicket(endpoint.getName(), "joe bloggs", 0);
+        }
+        else
+        {
+            ticket = "invalid-ticket";
+        }
+        assertNotNull(url);
+        URI uri = new URI(url);
+        conn = new ConnectionImpl(uri, Executors.newSingleThreadExecutor());
+
+        final AtomicReference<String> errorCode = new AtomicReference<String>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        conn.setErrorListener(new ErrorListener()
+        {
+            @Override
+            public void onError(String code)
+            {
+                System.out.println("got error " + code);
+                errorCode.set(code);
+                latch.countDown();
+            }
+        });
+
+        try
+        {
+            conn.connect(ticket);
+            failNoException();
+        }
+        catch (IOException e)
+        {
+        }
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        if (!expired)
+        {
+            assertEquals("bad_ticket", errorCode.get());
+        }
+        else
+        {
+            assertEquals("expired_ticket", errorCode.get());
+        }
+
+        System.out.println("Got to end");
+    }
+
+    public void testErrorNotConnected() throws Exception
+    {
+        Connection conn = null;
+
+        RabbitSocksAPI api = getAPI();
+        EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+                                                 .buildEndpoint("pub-sub-endpoint-0");
+        endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
+        endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
+        endpoint = api.createEndpoint(endpoint);
+        String url = endpoint.getProtocols().get("websockets");
+        URI uri = new URI(url);
+        conn = new ConnectionImpl(uri, Executors.newSingleThreadExecutor());
+
+        final AtomicReference<String> errorCode = new AtomicReference<String>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        conn.setErrorListener(new ErrorListener()
+        {
+            @Override
+            public void onError(String code)
+            {
+                System.out.println("got error " + code);
+                errorCode.set(code);
+                latch.countDown();
+            }
+        });
+
+        Websocket ws = ((ConnectionImpl)conn).getWebsocket();
+        ws.connect();
+        Message msg = new Message("ch-pub");
+        msg.setBody("foo");
+        ws.send(msg.toJSON());
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertEquals("not_connected", errorCode.get());
+
+        System.out.println("Got to end");
+    }
+
+    public void testInvalidFrameBeforeConnect() throws Exception
+    {
+        Connection conn = null;
+
+        RabbitSocksAPI api = getAPI();
+        EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+                                                 .buildEndpoint("pub-sub-endpoint-0");
+        endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
+        endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
+        endpoint = api.createEndpoint(endpoint);
+        String url = endpoint.getProtocols().get("websockets");
+        URI uri = new URI(url);
+        conn = new ConnectionImpl(uri, Executors.newSingleThreadExecutor());
+
+        final AtomicReference<String> errorCode = new AtomicReference<String>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        conn.setErrorListener(new ErrorListener()
+        {
+            @Override
+            public void onError(String code)
+            {
+                System.out.println("got error " + code);
+                errorCode.set(code);
+                latch.countDown();
+            }
+        });
+
+        Websocket ws = ((ConnectionImpl)conn).getWebsocket();
+        ws.connect();
+        //Send invalid json frame before ticket
+        ws.send("}{}{}{}}{81278127812");
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertEquals("invalid_frame", errorCode.get());;
+    }
+
+    public void testInvalidFrameAfterConnect() throws Exception
+    {
+        Connection conn = null;
+
+        RabbitSocksAPI api = getAPI();
+        EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+                                                 .buildEndpoint("pub-sub-endpoint-0");
+        endpoint.putChannelDefinition("ch-pub", ChannelType.PUB, "topic1");
+        endpoint.putChannelDefinition("ch-sub", ChannelType.SUB, "topic1");
+        endpoint = api.createEndpoint(endpoint);
+        String url = endpoint.getProtocols().get("websockets");
+        URI uri = new URI(url);
+        String ticket = api.generateTicket(endpoint.getName(), "joe bloggs", 1000);
+        conn = new ConnectionImpl(uri, Executors.newSingleThreadExecutor());
+        conn.connect(ticket);
+
+        final AtomicReference<String> errorCode = new AtomicReference<String>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        conn.setErrorListener(new ErrorListener()
+        {
+            @Override
+            public void onError(String code)
+            {
+                System.out.println("got error " + code);
+                errorCode.set(code);
+                latch.countDown();
+            }
+        });
+        Websocket ws = ((ConnectionImpl)conn).getWebsocket();
+        //Send invalid json frame
+        ws.send("}{}{}{}}{81278127812");
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertEquals("invalid_frame", errorCode.get());;
     }
 
     private void assertEndpoint(final EndpointInfo endpoint1,

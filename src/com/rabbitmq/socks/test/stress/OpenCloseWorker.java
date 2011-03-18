@@ -38,8 +38,8 @@ public class OpenCloseWorker extends Worker
             {
                 Connection conn = new ConnectionImpl(new URI(url), executor);
                 conn.connect(ticket);
-                System.out.println(this + " Connected " + c++);
                 conn.close();
+                System.out.println("Done " + c++);
             }
         }
         catch (Exception e)

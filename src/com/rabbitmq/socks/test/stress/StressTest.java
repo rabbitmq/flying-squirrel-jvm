@@ -44,7 +44,7 @@ public class StressTest extends APITestBase
 
         final int numMessages = 10;
 
-        runWorkers(1, new WorkerFactory()
+        runWorkers(10, new WorkerFactory()
         {
             int i;
             @Override
