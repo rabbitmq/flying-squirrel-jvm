@@ -647,11 +647,48 @@ public class APITest extends APITestBase
             }
         });
 
-        Message msg = new Message("no-such_channel");
+        Message msg = new Message("no_such_channel");
         conn.send(msg);
 
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals("unknown_channel", errorCode.get());;
+    }
+
+    public void testNoReplyField() throws Exception
+    {
+        Connection conn = null;
+
+        RabbitSocksAPI api = getAPI();
+        EndpointInfo endpoint = RabbitSocksAPIFactory.getEndpointBuilder()
+                                                 .buildEndpoint("pub-sub-endpoint-0");
+        endpoint.putChannelDefinition("ch-req", ChannelType.REQ, "topic1");
+        endpoint.putChannelDefinition("ch-rep", ChannelType.REP, "topic1");
+        endpoint = api.createEndpoint(endpoint);
+        String url = endpoint.getProtocols().get("websockets");
+        URI uri = new URI(url);
+        String ticket = api.generateTicket(endpoint.getName(), "joe bloggs", 1000);
+        conn = new ConnectionImpl(uri, Executors.newSingleThreadExecutor());
+        conn.connect(ticket);
+
+        final AtomicReference<String> errorCode = new AtomicReference<String>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        conn.setErrorListener(new ErrorListener()
+        {
+            @Override
+            public void onError(String code)
+            {
+                System.out.println("got error " + code);
+                errorCode.set(code);
+                latch.countDown();
+            }
+        });
+
+        Message msg = new Message("ch-rep");
+        conn.send(msg);
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertEquals("no_reply_field", errorCode.get());;
     }
 
     private void assertEndpoint(final EndpointInfo endpoint1,
