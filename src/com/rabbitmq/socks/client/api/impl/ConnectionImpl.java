@@ -108,9 +108,7 @@ public class ConnectionImpl implements Connection, WebsocketListener
     {
         try
         {
-            System.out.println("json is " + json);
         	Frame frame = Frame.fromJSON(json);
-        	System.out.println("frame is " + frame);
         	switch (frame.getFrameType())
         	{
         	    case MESSAGE:
@@ -134,7 +132,6 @@ public class ConnectionImpl implements Connection, WebsocketListener
         	    }
         	    case ERROR:
         	    {
-        	        System.out.println("Got error");
         	        Error error = (Error)frame;
         	        if (!connected)
         	        {

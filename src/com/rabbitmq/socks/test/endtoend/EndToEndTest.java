@@ -65,8 +65,10 @@ public class EndToEndTest extends APITestBase
             String url = endpoint.getProtocols().get("websockets");
             assertNotNull(url);
             String ticket = genTicket("pub-sub-endpoint-0");
+            System.out.println("creating connection");
             conn = createConnection(url, ticket);
-            final int numMessages = 100;
+            System.out.println("Connection created ok");
+            final int numMessages = 1;
             final CountDownLatch latch = new CountDownLatch(numMessages);
             conn.setChannelListener("ch-sub", new ChannelListener()
             {
@@ -98,6 +100,7 @@ public class EndToEndTest extends APITestBase
                 Message m = new Message("ch-pub");
                 m.setBody(msg);
                 conn.send(m);
+                System.out.println("Sent message " + i);
             }
             assertTrue(latch.await(5, TimeUnit.SECONDS));
             runAsserts();
