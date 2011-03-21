@@ -106,6 +106,7 @@ public class ConnectionImpl implements Connection, WebsocketListener
     @Override
     public void onMessage(final String json)
     {
+        //System.out.println("Got json: " + json);
         try
         {
         	Frame frame = Frame.fromJSON(json);
@@ -118,6 +119,7 @@ public class ConnectionImpl implements Connection, WebsocketListener
                         throw new IOException("Message received before connected");
                     }
                     Message msg = (Message)frame;
+
                     ChannelListener listener =
                         listeners.get(msg.getChannelName());
                     if (listener != null)
