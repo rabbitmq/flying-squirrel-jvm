@@ -106,7 +106,7 @@ public class ConnectionImpl implements Connection, WebsocketListener
     @Override
     public void onMessage(final String json)
     {
-        //System.out.println("Got json: " + json);
+     //   System.out.println("Got json: " + json);
         try
         {
         	Frame frame = Frame.fromJSON(json);

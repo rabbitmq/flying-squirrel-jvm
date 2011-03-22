@@ -51,7 +51,7 @@ public class EndToEndTest extends APITestBase
     {
         return api.generateTicket(endpointName, IDENTITY, 1000);
     }
-
+    
     public void testPubSubSameWebsocket() throws Exception
     {
         Connection conn = null;
@@ -65,9 +65,7 @@ public class EndToEndTest extends APITestBase
             String url = endpoint.getProtocols().get("websockets");
             assertNotNull(url);
             String ticket = genTicket("pub-sub-endpoint-0");
-            System.out.println("creating connection");
             conn = createConnection(url, ticket);
-            System.out.println("Connection created ok");
             final int numMessages = 1;
             final CountDownLatch latch = new CountDownLatch(numMessages);
             conn.setChannelListener("ch-sub", new ChannelListener()
@@ -100,7 +98,6 @@ public class EndToEndTest extends APITestBase
                 Message m = new Message("ch-pub");
                 m.setBody(msg);
                 conn.send(m);
-                System.out.println("Sent message " + i);
             }
             assertTrue(latch.await(5, TimeUnit.SECONDS));
             runAsserts();
