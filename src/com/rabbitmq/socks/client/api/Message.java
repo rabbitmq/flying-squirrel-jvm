@@ -20,29 +20,29 @@ public class Message extends Frame
         this.channel = channelName;
     }
 
-    public Message(final String channel, final String reply,
-    		       final String identity, final String message)
+    public Message(final String channel, final String replyTo,
+    		       final String identity, final String body)
     {
         super(FrameType.MESSAGE);
 		this.channel = channel;
-		this.reply = reply;
+		this.replyTo = replyTo;
 		this.identity = identity;
-		this.message = message;
+		this.body = body;
 	}
 
 	private String channel;
-    private String reply;
+    private String replyTo;
     private String identity;
-    private String message;
+    private String body;
 
-    public String getReply()
+    public String getReplyTo()
     {
-        return reply;
+        return replyTo;
     }
 
-    public void setReply(String reply)
+    public void setReplyTo(String replyTo)
     {
-        this.reply = reply;
+        this.replyTo = replyTo;
     }
 
     public String getIdentity()
@@ -67,26 +67,26 @@ public class Message extends Frame
 
     public String getBody()
     {
-        return message;
+        return body;
     }
 
     public void setBody(String body)
     {
-        this.message = body;
+        this.body = body;
     }
 
     @Override
     protected void generateFields(JsonGenerator jg) throws IOException
     {
-        jg.writeStringField("channel", channel);
-        jg.writeStringField("message", message);
+        jg.writeStringField(CHANNEL_FIELD, channel);
+        jg.writeStringField(BODY_FIELD, body);
         if (identity != null)
         {
-            jg.writeStringField("identity", identity);
+            jg.writeStringField(IDENTITY_FIELD, identity);
         }
-        if (reply != null)
+        if (replyTo != null)
         {
-            jg.writeStringField("reply", reply);
+            jg.writeStringField(REPLY_TO_FIELD, replyTo);
         }
     }
 }

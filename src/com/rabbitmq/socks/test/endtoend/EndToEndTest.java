@@ -51,7 +51,7 @@ public class EndToEndTest extends APITestBase
     {
         return api.generateTicket(endpointName, IDENTITY, 1000);
     }
-    
+
     public void testPubSubSameWebsocket() throws Exception
     {
         Connection conn = null;
@@ -85,7 +85,7 @@ public class EndToEndTest extends APITestBase
                                             msg.getBody());
                             assertEquals(IDENTITY, msg.getIdentity());
                             assertEquals("ch-sub", msg.getChannelName());
-                            assertNull(msg.getReply());
+                            assertNull(msg.getReplyTo());
                         }
                     });
                     latch.countDown();
@@ -161,7 +161,7 @@ public class EndToEndTest extends APITestBase
                                                           .getIdentity());
                                 assertEquals("ch-sub",
                                                 msg.getChannelName());
-                                assertNull(msg.getReply());
+                                assertNull(msg.getReplyTo());
                             }
                         });
                         l.countDown();
@@ -312,7 +312,7 @@ public class EndToEndTest extends APITestBase
                                             msg.getBody());
                             assertEquals(IDENTITY, msg.getIdentity());
                             assertEquals("ch-pull", msg.getChannelName());
-                            assertNull(msg.getReply());
+                            assertNull(msg.getReplyTo());
                         }
                     });
                     l.countDown();
@@ -440,7 +440,7 @@ public class EndToEndTest extends APITestBase
                         {
                             assertEquals(IDENTITY, msg.getIdentity());
                             assertEquals("ch-pull", msg.getChannelName());
-                            assertNull(msg.getReply());
+                            assertNull(msg.getReplyTo());
                         }
                     });
                     l.countDown();
@@ -483,7 +483,7 @@ public class EndToEndTest extends APITestBase
                         assertEquals("this is message " + i, msg.getBody());
                         assertEquals("ch-rep", msg.getChannelName());
                         assertEquals(IDENTITY, msg.getIdentity());
-                        assertNotNull(msg.getReply());
+                        assertNotNull(msg.getReplyTo());
                     }
                 });
                 count++;
@@ -491,7 +491,7 @@ public class EndToEndTest extends APITestBase
                 try
                 {
                     Message reply = new Message("ch-rep");
-                    reply.setReply(msg.getReply());
+                    reply.setReplyTo(msg.getReplyTo());
                     reply.setBody("this is response " + i);
                     connRep.send(reply);
                 }
@@ -519,7 +519,7 @@ public class EndToEndTest extends APITestBase
                         assertEquals("this is response " + i, msg.getBody());
                         assertEquals("ch-req", msg.getChannelName());
                         assertEquals(IDENTITY, msg.getIdentity());
-                        assertNotNull(msg.getReply());
+                        assertNotNull(msg.getReplyTo());
                     }
                 });
                 count++;

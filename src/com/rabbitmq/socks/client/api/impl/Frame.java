@@ -20,9 +20,9 @@ import com.rabbitmq.socks.client.api.Message;
 public abstract class Frame
 {
     public final static String CHANNEL_FIELD = "channel";
-    public final static String MESSAGE_FIELD = "message";
+    public final static String BODY_FIELD = "body";
     public final static String IDENTITY_FIELD = "identity";
-    public final static String REPLY_FIELD = "reply";
+    public final static String REPLY_TO_FIELD = "reply-to";
     public final static String CONNECT_FIELD = "connect";
     public final static String ERROR_CODE_FIELD = "error-code";
 
@@ -67,7 +67,7 @@ public abstract class Frame
             {
                 channel = jp.getText();
             }
-            else if (MESSAGE_FIELD.equals(fieldName))
+            else if (BODY_FIELD.equals(fieldName))
             {
                 message = jp.getText();
             }
@@ -75,7 +75,7 @@ public abstract class Frame
             {
                 identity = jp.getText();
             }
-            else if (REPLY_FIELD.equals(fieldName))
+            else if (REPLY_TO_FIELD.equals(fieldName))
             {
                 reply = jp.getText();
             }

@@ -1,9 +1,10 @@
 package com.rabbitmq.socks.test.client;
 
-import com.rabbitmq.socks.client.api.*;
-import com.rabbitmq.socks.client.api.impl.Frame;
-
 import junit.framework.TestCase;
+
+import com.rabbitmq.socks.client.api.Connect;
+import com.rabbitmq.socks.client.api.Message;
+import com.rabbitmq.socks.client.api.impl.Frame;
 
 public class FrameTest extends TestCase
 {
@@ -23,24 +24,24 @@ public class FrameTest extends TestCase
 
     private void messageRoundtrip(String channel,
                                  String identity,
-                                 String reply,
+                                 String replyTo,
                                  String body) throws Exception
     {
         Message m = new Message(channel);
-        m.setReply(reply);
+        m.setReplyTo(replyTo);
         m.setBody(body);
         m.setIdentity(identity);
 
         Message m2 = (Message) Frame.fromJSON(m.toJSON());
         assertEquals(m.getChannelName(), m2.getChannelName());
-        assertEquals(m.getReply(), m2.getReply());
+        assertEquals(m.getReplyTo(), m2.getReplyTo());
         assertEquals(m.getIdentity(), m2.getIdentity());
         assertEquals(m.getBody(), m2.getBody());
     }
 
     public void testMessageRoundtrip() throws Exception
     {
-        messageRoundtrip("channel", "identity", "reply", "body");
+        messageRoundtrip("channel", "identity", "reply-to", "body");
     }
 
     public void testMessageEncoding() throws Exception
