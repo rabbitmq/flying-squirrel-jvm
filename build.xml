@@ -33,8 +33,11 @@
 		<!-- Create the distribution directory -->
 		<mkdir dir="${dist}/lib" />
 
-		<!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-		<jar jarfile="${dist}/lib/rabbit-socks-api-http-client.jar" basedir="${build}" excludes="**/*Test.class" />
+		<jar jarfile="${dist}/lib/rabbit-socks-api-http-api.jar" basedir="${build}"
+			includes="**/com/rabbitmq/socks/api/**/*.class" />
+
+		<jar jarfile="${dist}/lib/rabbit-socks-api-client.jar" basedir="${build}"
+			includes="**/com/rabbitmq/socks/client/**/*.class,**/com/rabbitmq/socks/websocket/**/*.class"/>
 	</target>
 
 	<target name="clean" description="clean up">
