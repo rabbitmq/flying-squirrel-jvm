@@ -1,11 +1,15 @@
-To build:
+a) To build:
 
-1) make sure you have Apache Ant installed and on your PATH.
+Make sure you have Apache Ant installed and on your PATH.
 
-2) type "ant"
+Type "ant"
 
-3) jar file will be created in ./dist/lib. The jar file has a run-time dependency on the jackson**.jar (this is in the lib directory). Jackson is used for parsing JSON. All other dependencies are required by the tests only
+Two jar files will be created in ./dist/lib.
 
-To run tests:
+1) rabbit-socks-api-http-api.jar - this provides a client side API to the HTTP provisioning API of Flying Squirrel. This is the API that is designed to be used by Flying Squirrel applications to do thing like set-up endpoints, list connections etc
+
+2) rabbit-socks-api-client.jar - this provides a simple client side API allowing you to create connections and send and subscribe to channels. This is the kind of thing you might also do in JavaScript inside your browser using the JavaScript client. This jar allows you do the same thing in Java.
+
+b) To run tests:
 
 ant tests
