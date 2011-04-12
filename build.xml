@@ -10,6 +10,7 @@
 	<property name="dist" location="dist" />
 	<property name="lib" location="lib" />
 	<property name="tests-report" location="tests-report" />
+        <property name="stress-tests-report" location="stress-tests-report" />
 
 	<path id="lib-classpath">
 		<fileset dir="${lib}">
@@ -45,6 +46,7 @@
 		<delete dir="${build}" />
 		<delete dir="${dist}" />
 		<delete dir="${tests-report}" />
+                <delete dir="${stress-tests-report}" />
 	</target>
 
 	<target name="tests" depends="compile">
@@ -59,6 +61,22 @@
 				<fileset dir="${src}">
 					<include name="**/*Test.java" />
 					<exclude name="**/stress/**/*Test.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+
+        <target name="stress-tests" depends="compile">
+		<mkdir dir="${stress-tests-report}" />
+		<junit printsummary="yes" haltonfailure="yes" haltonerror="yes" showoutput="yes">
+			<classpath>
+				<pathelement location="${build}" />
+				<path refid="lib-classpath" />
+			</classpath>
+			<formatter type="plain" />
+			<batchtest fork="no" todir="${stress-tests-report}">
+				<fileset dir="${src}">
+					<include name="**/stress/**/*Test.java" />
 				</fileset>
 			</batchtest>
 		</junit>

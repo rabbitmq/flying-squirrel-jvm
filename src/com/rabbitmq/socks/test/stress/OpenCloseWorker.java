@@ -3,8 +3,10 @@ package com.rabbitmq.socks.test.stress;
 import java.net.URI;
 import java.util.concurrent.Executor;
 
+import com.rabbitmq.socks.api.ChannelType;
 import com.rabbitmq.socks.api.EndpointInfo;
 import com.rabbitmq.socks.api.RabbitSocksAPI;
+import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
 import com.rabbitmq.socks.client.api.Connection;
 import com.rabbitmq.socks.client.api.impl.ConnectionImpl;
 
@@ -15,15 +17,9 @@ import com.rabbitmq.socks.client.api.impl.ConnectionImpl;
  */
 public class OpenCloseWorker extends Worker
 {
-    private final EndpointInfo endpoint;
-    private long runLength;
-
-    public OpenCloseWorker(final EndpointInfo endpoint, final RabbitSocksAPI api,
-        final Executor executor, long runLength)
+    public OpenCloseWorker(final RabbitSocksAPI api, final Executor executor, final long runLength)
     {
-        super(api, executor);
-        this.endpoint = endpoint;
-        this.runLength = runLength;        
+        super(api, executor, runLength);  
     }
 
     @Override
@@ -31,27 +27,27 @@ public class OpenCloseWorker extends Worker
     {
         try
         {
+        	EndpointInfo epOpenClose = RabbitSocksAPIFactory.getEndpointBuilder()
+        	.buildEndpoint("open-close-endpoint");
+	        epOpenClose.putChannelDefinition("foo", ChannelType.PUB, "blah");
+	        EndpointInfo endpointOpenClose = api.createEndpoint(epOpenClose);
+        	
         	long start = System.currentTimeMillis();
-            String url = endpoint.getProtocols().get("websockets");
-            String ticket = api.generateTicket(endpoint.getName(),
+            String url = endpointOpenClose.getProtocols().get("websockets");
+            String ticket = api.generateTicket(endpointOpenClose.getName(),
                                                "joe bloggs",
                                                1000000);
-            int c = 0;
             while (System.currentTimeMillis() - start < runLength)
             {
                 Connection conn = new ConnectionImpl(new URI(url), executor);
                 conn.connect(ticket);
                 conn.close();
-                c++;
-                if (c % 100 == 0)
-                {
-                	System.out.println("Done " + c);
-                }
+                count++;
             }
         }
         catch (Exception e)
         {
             exception = e;
         }
-    }
+    }       
 }

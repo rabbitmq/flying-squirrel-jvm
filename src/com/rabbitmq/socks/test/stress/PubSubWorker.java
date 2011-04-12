@@ -26,8 +26,7 @@ public class PubSubWorker extends Worker implements ChannelListener
     private final String channelSub;
     private final int numMessages;
     private volatile CountDownLatch latch;
-    private volatile int count;
-    private final long runLength;
+    private volatile int latchCount;
 
     public PubSubWorker(final RabbitSocksAPI api,
                         final Executor executor,
@@ -37,7 +36,7 @@ public class PubSubWorker extends Worker implements ChannelListener
                         final int numMessages,
                         final long runLength)
     {
-        super(api, executor);
+        super(api, executor, runLength);
         this.topicName = topicName;
         this.channelPub = channelPub;
         this.channelSub = channelSub;
@@ -50,7 +49,7 @@ public class PubSubWorker extends Worker implements ChannelListener
     {
         latch.countDown();
 
-        if (!message.getBody().equals("message-" + count++))
+        if (!message.getBody().equals("message-" + latchCount++))
         {
             exception = new Exception("Bad ordering");
         }
@@ -75,13 +74,11 @@ public class PubSubWorker extends Worker implements ChannelListener
             String urlPub = endpointPub.getProtocols().get("websockets");
             String ticketPub = api.generateTicket(endpointPub.getName(),
                                                "joe bloggs",
-                                               1000);
+                                               1000000);
             String urlSub = endpointSub.getProtocols().get("websockets");
             String ticketSub = api.generateTicket(endpointSub.getName(),
                                                "joe bloggs",
-                                               1000);
-            int iters = 0;
-            
+                                               1000000);
             while (System.currentTimeMillis() - start < runLength)
             {
                 Connection connPub = new ConnectionImpl(new URI(urlPub), executor);
@@ -92,7 +89,7 @@ public class PubSubWorker extends Worker implements ChannelListener
                 connSub.setChannelListener(channelSub, this);
 
                 latch = new CountDownLatch(numMessages);
-                count = 0;
+                latchCount = 0;
 
                 for (int i = 0; i < numMessages; i++)
                 {
@@ -109,10 +106,7 @@ public class PubSubWorker extends Worker implements ChannelListener
                 connPub.close();
                 connSub.close();
 
-                if (iters % 100 == 0)
-                {
-                	System.out.println("done " + iters++);
-                }
+                count++;
             }
             api.deleteEndpoint(epPub.getName());
             api.deleteEndpoint(epSub.getName());

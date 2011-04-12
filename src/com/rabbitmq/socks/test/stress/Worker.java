@@ -14,22 +14,33 @@ public abstract class Worker extends Thread
 {
     protected final RabbitSocksAPI api;
     protected final Executor executor;
-    protected volatile boolean failed;
+    protected volatile Exception exception;
     protected volatile boolean closed;
+    protected long runLength;
+    protected volatile int count;
 
-    public Worker(final RabbitSocksAPI api, final Executor executor)
+
+    public Worker(final RabbitSocksAPI api, final Executor executor, final long runLength)
     {
         this.api = api;
         this.executor = executor;
+        this.runLength = runLength;
     }
 
-    public void close()
+    public Exception getException()
     {
-        closed = true;
+    	return exception;
     }
-
-    public boolean isFailed()
+    
+    public int getCount()
     {
-        return failed;
+    	return count;
     }
+    
+    @Override
+    public String toString()
+    {
+    	return this.getClass().getName() + ":" + this.hashCode();
+    }
+    
 }
