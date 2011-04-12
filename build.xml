@@ -12,8 +12,21 @@
 	<property name="tests-report" location="tests-report" />
         <property name="stress-tests-report" location="stress-tests-report" />
 
-        <property file="stress-tests.properties"/>
-
+        <property environment="env"/>
+        <condition property="rsa.host" value="${env.rsa.host}" else="localhost">
+            <isset property="env.rsa.host" />
+        </condition>
+        <condition property="rsa.port" value="${env.rsa.port}" else="55672">
+            <isset property="env.rsa.port" />
+        </condition>
+        <condition property="rsa.runlength" value="${env.rsa.runlength}" else="1800000">
+            <isset property="env.rsa.runlength" />
+        </condition>
+<!--
+        <property name="env.rsa.host" value="localhost"/>
+        <property name="env.rsa.port" value="55672"/>
+        <property name="env.rsa.runlength" value="1800000"/>
+-->
 	<path id="lib-classpath">
 		<fileset dir="${lib}">
 			<include name="*.jar" />
