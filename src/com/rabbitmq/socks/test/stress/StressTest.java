@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.rabbitmq.socks.api.RabbitSocksAPI;
+import com.rabbitmq.socks.api.RabbitSocksAPIFactory;
 import com.rabbitmq.socks.test.APITestBase;
 
 /**
@@ -23,7 +24,7 @@ public class StressTest extends APITestBase
     private final String channelRep = "ch-rep";
     
     private final int numMessages = 10;
-    private final long runLength = 30 * 60 * 1000;
+    private long runLength;
     
     private volatile ExecutorService exec;
     private volatile RabbitSocksAPI api;
@@ -31,8 +32,13 @@ public class StressTest extends APITestBase
     @Override
     protected void setUp() throws Exception
     {
-    	exec = Executors.newCachedThreadPool();    	
-    	api = getAPI();
+    	exec = Executors.newCachedThreadPool();    
+    	String host = System.getProperty("rsa.host", "localhost");
+    	String port = System.getProperty("rsa.port", "55672");
+    	runLength = Integer.valueOf(System.getProperty("rsa.runlength", "1800000")).intValue();
+    	api = RabbitSocksAPIFactory.getClient(host, Integer.valueOf(port).intValue(), "socks-api/default",
+                "guest", "guest");
+    	System.out.println("Using host: " + host + " port: " + port + " runlength: " + runLength);
     }
     
     @Override

@@ -12,6 +12,8 @@
 	<property name="tests-report" location="tests-report" />
         <property name="stress-tests-report" location="stress-tests-report" />
 
+        <property file="stress-tests.properties"/>
+
 	<path id="lib-classpath">
 		<fileset dir="${lib}">
 			<include name="*.jar" />
@@ -69,6 +71,9 @@
         <target name="stress-tests" depends="compile">
 		<mkdir dir="${stress-tests-report}" />
 		<junit printsummary="yes" haltonfailure="yes" haltonerror="yes" showoutput="yes">
+                        <sysproperty key="rsa.host" value="${rsa.host}"/>
+                        <sysproperty key="rsa.port" value="${rsa.port}"/>
+                        <sysproperty key="rsa.runlength" value="${rsa.runlength}"/>
 			<classpath>
 				<pathelement location="${build}" />
 				<path refid="lib-classpath" />
