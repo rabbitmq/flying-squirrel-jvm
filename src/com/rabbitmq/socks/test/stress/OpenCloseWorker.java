@@ -16,12 +16,14 @@ import com.rabbitmq.socks.client.api.impl.ConnectionImpl;
 public class OpenCloseWorker extends Worker
 {
     private final EndpointInfo endpoint;
+    private long runLength;
 
     public OpenCloseWorker(final EndpointInfo endpoint, final RabbitSocksAPI api,
-        final Executor executor)
+        final Executor executor, long runLength)
     {
         super(api, executor);
         this.endpoint = endpoint;
+        this.runLength = runLength;        
     }
 
     @Override
@@ -29,23 +31,27 @@ public class OpenCloseWorker extends Worker
     {
         try
         {
+        	long start = System.currentTimeMillis();
             String url = endpoint.getProtocols().get("websockets");
             String ticket = api.generateTicket(endpoint.getName(),
                                                "joe bloggs",
-                                               1000);
+                                               1000000);
             int c = 0;
-            while (!closed)
+            while (System.currentTimeMillis() - start < runLength)
             {
                 Connection conn = new ConnectionImpl(new URI(url), executor);
                 conn.connect(ticket);
                 conn.close();
-                System.out.println("Done " + c++);
+                c++;
+                if (c % 100 == 0)
+                {
+                	System.out.println("Done " + c);
+                }
             }
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            failed = true;
+            exception = e;
         }
     }
 }

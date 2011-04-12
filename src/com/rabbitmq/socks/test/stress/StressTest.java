@@ -25,12 +25,12 @@ public class StressTest extends APITestBase
         ep.putChannelDefinition("foo", ChannelType.PUB, "blah");
         final EndpointInfo endpoint = api.createEndpoint(ep);
 
-        runWorkers(10, new WorkerFactory()
+        runWorkers(30, new WorkerFactory()
         {
             @Override
-            public Worker createWorker()
+            public Worker createWorker(long runLength)
             {
-                return new OpenCloseWorker(endpoint, api, exec);
+                return new OpenCloseWorker(endpoint, api, exec, runLength);
             }
         });
     }
@@ -44,40 +44,45 @@ public class StressTest extends APITestBase
 
         final int numMessages = 10;
 
-        runWorkers(10, new WorkerFactory()
+        runWorkers(30, new WorkerFactory()
         {
             int i;
             @Override
-            public Worker createWorker()
+            public Worker createWorker(long runLength)
             {
                 return new PubSubWorker(api, exec, "topic-" + i++,
-                                        channelPub, channelSub, numMessages);
+                                        channelPub, channelSub, numMessages,
+                                        runLength);
             }
         });
     }
 
     private interface WorkerFactory
     {
-        Worker createWorker();
+        Worker createWorker(long runLength);
     }
 
     private void runWorkers(final int numWorkers, WorkerFactory wf)
         throws Exception
     {
         Worker[] workers = new Worker[numWorkers];
+        long runLength = 30 * 60 * 1000;
         for (int i = 0; i < workers.length; i++)
         {
-            workers[i] = wf.createWorker();
+            workers[i] = wf.createWorker(runLength);
             workers[i].start();
         }
-        long runLength = 10 * 60 * 1000;
-        Thread.sleep(runLength);
-        System.out.println("Stopping workers");
         for (int i = 0; i < workers.length; i++)
         {
-            workers[i].close();
             workers[i].join();
-            assertFalse(workers[i].isFailed());
+            Exception e = workers[i].exception;
+            if (e != null)
+            {
+            	String msg = "Got exception from worker: " + e.getMessage();
+            	System.err.println(msg);
+            	e.printStackTrace(System.err);
+            	fail(msg);
+            }
         }
         System.out.println("Workers stopped");
     }

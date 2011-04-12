@@ -27,19 +27,22 @@ public class PubSubWorker extends Worker implements ChannelListener
     private final int numMessages;
     private volatile CountDownLatch latch;
     private volatile int count;
+    private final long runLength;
 
     public PubSubWorker(final RabbitSocksAPI api,
                         final Executor executor,
                         final String topicName,
                         final String channelPub,
                         final String channelSub,
-                        final int numMessages)
+                        final int numMessages,
+                        final long runLength)
     {
         super(api, executor);
         this.topicName = topicName;
         this.channelPub = channelPub;
         this.channelSub = channelSub;
         this.numMessages = numMessages;
+        this.runLength = runLength;
     }
 
     @Override
@@ -49,8 +52,7 @@ public class PubSubWorker extends Worker implements ChannelListener
 
         if (!message.getBody().equals("message-" + count++))
         {
-            System.err.println("Invalid body");
-            failed = true;
+            exception = new Exception("Bad ordering");
         }
     }
 
@@ -59,6 +61,7 @@ public class PubSubWorker extends Worker implements ChannelListener
     {
         try
         {
+        	long start = System.currentTimeMillis();
             EndpointInfo epPub = RabbitSocksAPIFactory.getEndpointBuilder()
                                         .buildEndpoint("ep-" + topicName + "-pub");
             epPub.putChannelDefinition(channelPub, ChannelType.PUB, topicName);
@@ -78,7 +81,8 @@ public class PubSubWorker extends Worker implements ChannelListener
                                                "joe bloggs",
                                                1000);
             int iters = 0;
-            while (!closed)
+            
+            while (System.currentTimeMillis() - start < runLength)
             {
                 Connection connPub = new ConnectionImpl(new URI(urlPub), executor);
                 connPub.connect(ticketPub);
@@ -86,8 +90,6 @@ public class PubSubWorker extends Worker implements ChannelListener
                 Connection connSub = new ConnectionImpl(new URI(urlSub), executor);
                 connSub.connect(ticketSub);
                 connSub.setChannelListener(channelSub, this);
-
-               // System.out.println("Connected");
 
                 latch = new CountDownLatch(numMessages);
                 count = 0;
@@ -101,22 +103,23 @@ public class PubSubWorker extends Worker implements ChannelListener
 
                 if (!latch.await(10, TimeUnit.SECONDS))
                 {
-                    System.err.println("Timed out waiting for messages");
-                    failed = true;
+                    exception = new Exception("Timed out waiting for messages");
                 }
 
                 connPub.close();
                 connSub.close();
 
-                System.out.println("done " + iters++);
+                if (iters % 100 == 0)
+                {
+                	System.out.println("done " + iters++);
+                }
             }
             api.deleteEndpoint(epPub.getName());
             api.deleteEndpoint(epSub.getName());
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            failed = true;
+            exception = e;
         }
     }
 }
