@@ -18,13 +18,15 @@ public abstract class Worker extends Thread
     protected volatile boolean closed;
     protected long runLength;
     protected volatile int count;
+    protected final String guid;
 
 
-    public Worker(final RabbitSocksAPI api, final Executor executor, final long runLength)
+    public Worker(final RabbitSocksAPI api, final Executor executor, final long runLength, final String guid)
     {
         this.api = api;
         this.executor = executor;
         this.runLength = runLength;
+        this.guid = guid;
     }
 
     public Exception getException()

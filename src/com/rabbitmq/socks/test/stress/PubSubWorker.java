@@ -34,10 +34,11 @@ public class PubSubWorker extends Worker implements ChannelListener
                         final String channelPub,
                         final String channelSub,
                         final int numMessages,
-                        final long runLength)
+                        final long runLength,
+                        final String guid)
     {
-        super(api, executor, runLength);
-        this.topicName = topicName;
+        super(api, executor, runLength, guid);
+        this.topicName = topicName + "-" + guid;
         this.channelPub = channelPub;
         this.channelSub = channelSub;
         this.numMessages = numMessages;
@@ -62,12 +63,12 @@ public class PubSubWorker extends Worker implements ChannelListener
         {
         	long start = System.currentTimeMillis();
             EndpointInfo epPub = RabbitSocksAPIFactory.getEndpointBuilder()
-                                        .buildEndpoint("ep-" + topicName + "-pub");
+                                        .buildEndpoint("ep-" + topicName + "-pub-" + guid);
             epPub.putChannelDefinition(channelPub, ChannelType.PUB, topicName);
             EndpointInfo endpointPub = api.createEndpoint(epPub);
 
             EndpointInfo epSub = RabbitSocksAPIFactory.getEndpointBuilder()
-                    .buildEndpoint("ep-" + topicName + "-sub");
+                    .buildEndpoint("ep-" + topicName + "-sub-" + guid);
             epSub.putChannelDefinition(channelSub, ChannelType.SUB, topicName);
             EndpointInfo endpointSub = api.createEndpoint(epSub);
 

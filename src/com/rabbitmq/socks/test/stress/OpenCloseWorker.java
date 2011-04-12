@@ -17,9 +17,9 @@ import com.rabbitmq.socks.client.api.impl.ConnectionImpl;
  */
 public class OpenCloseWorker extends Worker
 {
-    public OpenCloseWorker(final RabbitSocksAPI api, final Executor executor, final long runLength)
+    public OpenCloseWorker(final RabbitSocksAPI api, final Executor executor, final long runLength, final String guid)
     {
-        super(api, executor, runLength);  
+        super(api, executor, runLength, guid);  
     }
 
     @Override
@@ -28,7 +28,7 @@ public class OpenCloseWorker extends Worker
         try
         {
         	EndpointInfo epOpenClose = RabbitSocksAPIFactory.getEndpointBuilder()
-        	.buildEndpoint("open-close-endpoint");
+        	.buildEndpoint("open-close-endpoint-" + guid);
 	        epOpenClose.putChannelDefinition("foo", ChannelType.PUB, "blah");
 	        EndpointInfo endpointOpenClose = api.createEndpoint(epOpenClose);
         	

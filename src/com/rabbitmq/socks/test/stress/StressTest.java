@@ -2,6 +2,7 @@ package com.rabbitmq.socks.test.stress;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,6 +29,7 @@ public class StressTest extends APITestBase
     
     private volatile ExecutorService exec;
     private volatile RabbitSocksAPI api;
+    private volatile String guid;
     
     @Override
     protected void setUp() throws Exception
@@ -38,6 +40,7 @@ public class StressTest extends APITestBase
     	runLength = Integer.valueOf(System.getProperty("rsa.runlength", "1800000")).intValue();
     	api = RabbitSocksAPIFactory.getClient(host, Integer.valueOf(port).intValue(), "socks-api/default",
                 "guest", "guest");
+    	guid = UUID.randomUUID().toString();
     	System.out.println("Using host: " + host + " port: " + port + " runlength: " + runLength);
     }
     
@@ -145,7 +148,7 @@ public class StressTest extends APITestBase
             @Override
             public Worker createWorker()
             {
-                return new OpenCloseWorker(api, exec, runLength);
+                return new OpenCloseWorker(api, exec, runLength, guid);
             }
         };              
     }
@@ -159,7 +162,7 @@ public class StressTest extends APITestBase
             public Worker createWorker()
             {
                 return new PubSubWorker(api, exec, "topic-" + i++,
-                                        channelPub, channelSub, numMessages, runLength);
+                                        channelPub, channelSub, numMessages, runLength, guid);
             }
         };        
     }
@@ -174,7 +177,7 @@ public class StressTest extends APITestBase
             {
                 return new PushPullWorker(api, exec, "queue-" + i++,
                                         channelPush, channelPull, numMessages,
-                                        runLength);
+                                        runLength, guid);
             }
         };
     }
@@ -189,7 +192,7 @@ public class StressTest extends APITestBase
             {
                 return new ReqRepWorker(api, exec, "conv-" + i++,
                                         channelReq, channelRep, numMessages,
-                                        runLength);
+                                        runLength, guid);
             }
         };
     }
