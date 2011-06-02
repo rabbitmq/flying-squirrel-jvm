@@ -10,23 +10,18 @@
 	<property name="dist" location="dist" />
 	<property name="lib" location="lib" />
 	<property name="tests-report" location="tests-report" />
-        <property name="stress-tests-report" location="stress-tests-report" />
+  <property name="stress-tests-report" location="stress-tests-report" />
 
-        <property environment="env"/>
-        <condition property="rsa.host" value="${env.rsa.host}" else="localhost">
-            <isset property="env.rsa.host" />
-        </condition>
-        <condition property="rsa.port" value="${env.rsa.port}" else="55672">
-            <isset property="env.rsa.port" />
-        </condition>
-        <condition property="rsa.runlength" value="${env.rsa.runlength}" else="1800000">
-            <isset property="env.rsa.runlength" />
-        </condition>
-<!--
-        <property name="env.rsa.host" value="localhost"/>
-        <property name="env.rsa.port" value="55672"/>
-        <property name="env.rsa.runlength" value="1800000"/>
--->
+  <property environment="env"/>
+  <condition property="rsa.host" value="${env.rsa.host}" else="localhost">
+      <isset property="env.rsa.host" />
+  </condition>
+  <condition property="rsa.port" value="${env.rsa.port}" else="55672">
+      <isset property="env.rsa.port" />
+  </condition>
+  <condition property="rsa.runlength" value="${env.rsa.runlength}" else="1800000">
+      <isset property="env.rsa.runlength" />
+  </condition>
 	<path id="lib-classpath">
 		<fileset dir="${lib}">
 			<include name="*.jar" />
@@ -81,7 +76,7 @@
 		</junit>
 	</target>
 
-        <target name="stress-tests" depends="compile">
+  <target name="stress-tests" depends="compile">
 		<mkdir dir="${stress-tests-report}" />
 		<junit printsummary="yes" haltonfailure="yes" haltonerror="yes" showoutput="yes">
                         <sysproperty key="rsa.host" value="${rsa.host}"/>

@@ -13,3 +13,17 @@ Two jar files will be created in ./dist/lib.
 b) To run tests:
 
 ant tests
+
+Make sure you have an instance running on localhost before running the tests
+
+c) To run stress tests:
+
+ant stress-tests
+
+Make sure you have an instance running first
+
+If you want to point at a remote instance, set the following environment variables to point at it:
+
+rsa.host - hostname or ip [default is localhost]
+rsa.port - port [default is 55672]
+rsa.runlength - how long to run for in milliseconds [default is 1800000]
