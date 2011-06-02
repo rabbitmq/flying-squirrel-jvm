@@ -38,7 +38,7 @@ public abstract class APITestBase extends TestCase
 
     protected static RabbitSocksAPI getAPI()
     {
-        return RabbitSocksAPIFactory.getClient("localhost", 55672, "socks-api/default",
+        return RabbitSocksAPIFactory.getClient("localhost", 55670, "socks-api/default",
                                                "guest", "guest");
     }
 

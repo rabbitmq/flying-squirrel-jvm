@@ -36,7 +36,7 @@ public class StressTest extends APITestBase
     {
     	exec = Executors.newCachedThreadPool();    
     	String host = System.getProperty("rsa.host", "localhost");
-    	String port = System.getProperty("rsa.port", "55672");
+    	String port = System.getProperty("rsa.port", "55670");
     	runLength = Integer.valueOf(System.getProperty("rsa.runlength", "1800000")).intValue();
     	api = RabbitSocksAPIFactory.getClient(host, Integer.valueOf(port).intValue(), "socks-api/default",
                 "guest", "guest");

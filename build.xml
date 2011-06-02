@@ -16,7 +16,7 @@
   <condition property="rsa.host" value="${env.rsa.host}" else="localhost">
       <isset property="env.rsa.host" />
   </condition>
-  <condition property="rsa.port" value="${env.rsa.port}" else="55672">
+  <condition property="rsa.port" value="${env.rsa.port}" else="55670">
       <isset property="env.rsa.port" />
   </condition>
   <condition property="rsa.runlength" value="${env.rsa.runlength}" else="1800000">
