@@ -51,6 +51,16 @@
          includes="**/com/rabbitmq/socks/client/**/*.class,**/com/rabbitmq/socks/websocket/**/*.class"/>
   </target>
 
+  <target name="doc" description="generate documentation">
+    <mkdir dir="${build}/javadoc" />
+    <javadoc destdir="${build}/javadoc">
+      <fileset dir="${src}">
+        <include name="**/*.java" />
+        <exclude name="**/test/**/*.java" />
+      </fileset>
+    </javadoc>
+  </target>
+
   <target name="clean" description="clean up">
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}" />
