@@ -1,97 +1,97 @@
 <project name="RabbitSocksAPIJavaClient" default="dist" basedir=".">
 
-	<description>
-        Build script for the RabbitSocksAPI Java client
+  <description>
+    Build script for the RabbitSocksAPI Java client
   </description>
 
-	<!-- set global properties for this build -->
-	<property name="src" location="src" />
-	<property name="build" location="build" />
-	<property name="dist" location="dist" />
-	<property name="lib" location="lib" />
-	<property name="tests-report" location="tests-report" />
+  <!-- set global properties for this build -->
+  <property name="src" location="src" />
+  <property name="build" location="build" />
+  <property name="dist" location="dist" />
+  <property name="lib" location="lib" />
+  <property name="tests-report" location="tests-report" />
   <property name="stress-tests-report" location="stress-tests-report" />
 
   <property environment="env"/>
   <condition property="rsa.host" value="${env.rsa.host}" else="localhost">
-      <isset property="env.rsa.host" />
+    <isset property="env.rsa.host" />
   </condition>
   <condition property="rsa.port" value="${env.rsa.port}" else="55670">
-      <isset property="env.rsa.port" />
+    <isset property="env.rsa.port" />
   </condition>
   <condition property="rsa.runlength" value="${env.rsa.runlength}" else="1800000">
-      <isset property="env.rsa.runlength" />
+    <isset property="env.rsa.runlength" />
   </condition>
-	<path id="lib-classpath">
-		<fileset dir="${lib}">
-			<include name="*.jar" />
-		</fileset>
-	</path>
+  <path id="lib-classpath">
+    <fileset dir="${lib}">
+      <include name="*.jar" />
+    </fileset>
+  </path>
 
-	<target name="init">
-		<!-- Create the time stamp -->
-		<tstamp />
-		<!-- Create the build directory structure used by compile -->
-		<mkdir dir="${build}" />
-	</target>
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp />
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}" />
+  </target>
 
-	<target name="compile" depends="init" description="compile the source ">
-		<!-- Compile the java code from ${src} into ${build} -->
-		<javac srcdir="${src}" destdir="${build}" classpathref="lib-classpath" debug="on" />
-	</target>
+  <target name="compile" depends="init" description="compile the source ">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" classpathref="lib-classpath" debug="on" />
+  </target>
 
-	<target name="dist" depends="compile" description="generate the distribution">
-		<!-- Create the distribution directory -->
-		<mkdir dir="${dist}/lib" />
+  <target name="dist" depends="compile" description="generate the distribution">
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib" />
 
-		<jar jarfile="${dist}/lib/rabbit-socks-api-http-api.jar" basedir="${build}"
-			includes="**/com/rabbitmq/socks/api/**/*.class" />
+    <jar jarfile="${dist}/lib/rabbit-socks-api-http-api.jar" basedir="${build}"
+         includes="**/com/rabbitmq/socks/api/**/*.class" />
 
-		<jar jarfile="${dist}/lib/rabbit-socks-api-client.jar" basedir="${build}"
-			includes="**/com/rabbitmq/socks/client/**/*.class,**/com/rabbitmq/socks/websocket/**/*.class"/>
-	</target>
+    <jar jarfile="${dist}/lib/rabbit-socks-api-client.jar" basedir="${build}"
+         includes="**/com/rabbitmq/socks/client/**/*.class,**/com/rabbitmq/socks/websocket/**/*.class"/>
+  </target>
 
-	<target name="clean" description="clean up">
-		<!-- Delete the ${build} and ${dist} directory trees -->
-		<delete dir="${build}" />
-		<delete dir="${dist}" />
-		<delete dir="${tests-report}" />
-                <delete dir="${stress-tests-report}" />
-	</target>
+  <target name="clean" description="clean up">
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}" />
+    <delete dir="${dist}" />
+    <delete dir="${tests-report}" />
+    <delete dir="${stress-tests-report}" />
+  </target>
 
-	<target name="tests" depends="compile">
-		<mkdir dir="${tests-report}" />
-		<junit printsummary="yes" haltonfailure="yes" haltonerror="yes" showoutput="yes">
-			<classpath>
-				<pathelement location="${build}" />
-				<path refid="lib-classpath" />
-			</classpath>
-			<formatter type="plain" />
-			<batchtest fork="no" todir="${tests-report}">
-				<fileset dir="${src}">
-					<include name="**/*Test.java" />
-					<exclude name="**/stress/**/*Test.java" />
-				</fileset>
-			</batchtest>
-		</junit>
-	</target>
+  <target name="tests" depends="compile">
+    <mkdir dir="${tests-report}" />
+    <junit printsummary="yes" haltonfailure="yes" haltonerror="yes" showoutput="yes">
+      <classpath>
+        <pathelement location="${build}" />
+        <path refid="lib-classpath" />
+      </classpath>
+      <formatter type="plain" />
+      <batchtest fork="no" todir="${tests-report}">
+        <fileset dir="${src}">
+          <include name="**/*Test.java" />
+          <exclude name="**/stress/**/*Test.java" />
+        </fileset>
+      </batchtest>
+    </junit>
+  </target>
 
   <target name="stress-tests" depends="compile">
-		<mkdir dir="${stress-tests-report}" />
-		<junit printsummary="yes" haltonfailure="yes" haltonerror="yes" showoutput="yes">
-                        <sysproperty key="rsa.host" value="${rsa.host}"/>
-                        <sysproperty key="rsa.port" value="${rsa.port}"/>
-                        <sysproperty key="rsa.runlength" value="${rsa.runlength}"/>
-			<classpath>
-				<pathelement location="${build}" />
-				<path refid="lib-classpath" />
-			</classpath>
-			<formatter type="plain" />
-			<batchtest fork="no" todir="${stress-tests-report}">
-				<fileset dir="${src}">
-					<include name="**/stress/**/*Test.java" />
-				</fileset>
-			</batchtest>
-		</junit>
-	</target>
+    <mkdir dir="${stress-tests-report}" />
+    <junit printsummary="yes" haltonfailure="yes" haltonerror="yes" showoutput="yes">
+      <sysproperty key="rsa.host" value="${rsa.host}"/>
+      <sysproperty key="rsa.port" value="${rsa.port}"/>
+      <sysproperty key="rsa.runlength" value="${rsa.runlength}"/>
+      <classpath>
+        <pathelement location="${build}" />
+        <path refid="lib-classpath" />
+      </classpath>
+      <formatter type="plain" />
+      <batchtest fork="no" todir="${stress-tests-report}">
+        <fileset dir="${src}">
+          <include name="**/stress/**/*Test.java" />
+        </fileset>
+      </batchtest>
+    </junit>
+  </target>
 </project>
