@@ -40,7 +40,7 @@
     <javac srcdir="${src}" destdir="${build}" classpathref="lib-classpath" debug="on" />
   </target>
 
-  <target name="dist" depends="compile" description="generate the distribution">
+  <target name="dist" depends="compile, doc" description="generate the distribution">
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}/lib" />
 
@@ -49,6 +49,11 @@
 
     <jar jarfile="${dist}/lib/rabbit-socks-api-client.jar" basedir="${build}"
          includes="**/com/rabbitmq/socks/client/**/*.class,**/com/rabbitmq/socks/websocket/**/*.class"/>
+
+    <mkdir dir="${dist}/javadoc" />
+    <copy todir="${dist}/javadoc">
+      <fileset dir="${build}/javadoc" />
+    </copy>
   </target>
 
   <target name="doc" description="generate documentation">
