@@ -1,3 +1,6 @@
+/!\ Repository moved to GitHub: https://github.com/rabbitmq/flying-squirrel-jvm
+    This is a stale read-only repository.
+
 a) To build:
 
 Make sure you have Apache Ant installed and on your PATH.
